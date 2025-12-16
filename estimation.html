@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SCM Estimation Catalog v1.3</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --overview-bg: #e3f2fd;
+      --feature-bg: #f3e5f5;
+      --personalization-bg: #e8f5e9;
+      --total-bg: #fff8e1;
+      --grand-bg: #fce4ec;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
+      background: #fafafa;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #1a237e;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+    }
+    .section {
+      margin-bottom: 30px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .section.overview { background-color: var(--overview-bg); }
+    .section.features { background-color: var(--feature-bg); }
+    .section.personalization { background-color: var(--personalization-bg); }
+    .section.total-row { background-color: var(--total-bg); }
+    .section.grand-total { background-color: var(--grand-bg); }
+
+    .section-header {
+      padding: 10px 16px;
+      font-weight: bold;
+      color: #1a237e;
+      background: rgba(255,255,255,0.7);
+      border-bottom: 2px solid #ccc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #bbdefb;
+      color: #0d47a1;
+      font-weight: 600;
+    }
+    input {
+      width: 70px;
+      padding: 6px;
+      border: 1px solid #90a4ae;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+    }
+    input:focus {
+      outline: 2px solid #42a5f5;
+    }
+    .comment-input {
+      width: 180px;
+      padding: 5px;
+      border: 1px solid #9e9e9e;
+      border-radius: 4px;
+      font-size: 13px;
+      text-align: left;
+    }
+    .totals td {
+      font-weight: bold;
+      background-color: #e0e0e0;
+    }
+    .grand-totals td {
+      font-weight: bold;
+      background-color: #ffcdd2;
+      font-size: 1.1em;
+    }
+    button {
+      display: block;
+      margin: 25px auto;
+      padding: 12px 30px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <h1>SCM Estimation Catalog (v1.3)</h1>
+  <p class="subtitle">Adjust Qty, hours, and comments. Totals auto-update. Download when ready.</p>
+
+  <div id="formContainer"></div>
+  <button onclick="downloadXLSX()">📥 Download as Excel (.xlsx)</button>
+
+  <script>
+    // Define template with editable comments
+    const template = [
+      {
+        section: "Overview",
+        class: "overview",
+        tasks: [
+          { name: "Discussion", nonProd: 8, prod: 8, qty: 1, comment: "Muliple Discussions with Customer educating on Redwood Process" },
+          { name: "Documentation", nonProd: 16, prod: 16, qty: 1, comment: "CWB's , Impact Assessment Document , Adoption Document" },
+          { name: "Demo/ Review", nonProd: 8, prod: 8, qty: 1, comment: "Walk Through of Feature Before and After Adoption" }
+        ]
+      },
+      {
+        section: "Enablement of Applicable Features",
+        class: "features",
+        tasks: [
+          { name: "Features Enablement", nonProd: 0.1, prod: 0.1, qty: 0, comment: "Enabling Feature by Feature by setup , Profile option , Opt-in Enablement. This is per Feature Time" },
+          { name: "Verification of Enabled Features at Config Level", nonProd: 0.1, prod: 0.1, qty: 0, comment: "Once All the features are enabled , verifed all features enablment. This is per Feature Time" },
+          { name: "Verification of Enabled Features at UI", nonProd: 8, prod: 8, qty: 0, comment: "Verification of enabled functionality by going into respective UI once all the features a enabled." },
+          { name: "Unit Testing w/o Personlization", nonProd: 32, prod: 0, qty: 0, comment: "Testing of Std Process by creating transaction." },
+          { name: "Comparision between Classic vs Redwood - W.O", nonProd: 24, prod: 0, qty: 0, comment: "Column by Column comparision between Classic and Redwood to ensure everything is covered." }
+        ]
+      },
+      {
+        section: "Enablement of Personlization and Production Migration",
+        class: "personalization",
+        tasks: [
+          { name: "Enablement of Personlization and Production Migration", nonProd: 1, prod: 0.1, qty: 32, comment: "This is per Personlization time / Env" },
+          { name: "Testing After Personlizations", nonProd: 40, prod: 0, qty: 1, comment: "This can Vary with no.of Features and business process and Complexity" },
+          { name: "Additional Personlization - Excepted", nonProd: 1, prod: 0.1, qty: 5, comment: "This can Vary with no.of Features / Env" },
+          { name: "Issue Resolution - UAT , Post Go-Live", nonProd: 0, prod: 4, qty: 3, comment: "This can Vary with reported issue / Env" }
+        ]
+      }
+    ];
+
+    function renderForm() {
+      const container = document.getElementById("formContainer");
+      container.innerHTML = "";
+
+      let grandNonProd = 0, grandProd = 0, grandTotal = 0, grandCSUs = 0;
+
+      template.forEach(section => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = `section ${section.class}`;
+        sectionDiv.innerHTML = `<div class="section-header">${section.section}</div><table><thead><tr>
+          <th>Task</th>
+          <th>Non-Prod Hrs</th>
+          <th>Prod Hrs</th>
+          <th>Qty</th>
+          <th>Total Hrs</th>
+          <th>CSUs</th>
+          <th>Comment</th>
+        </tr></thead><tbody id="body_${section.section.replace(/\s+/g, '_')}"></tbody></table>`;
+        container.appendChild(sectionDiv);
+
+        let secNonProd = 0, secProd = 0, secTotal = 0, secCSUs = 0;
+        const tbody = document.getElementById(`body_${section.section.replace(/\s+/g, '_')}`);
+
+        section.tasks.forEach((task, idx) => {
+          const totalHrs = (task.nonProd + task.prod) * task.qty;
+          const csus = totalHrs / 2;
+          secNonProd += task.nonProd * task.qty;
+          secProd += task.prod * task.qty;
+          secTotal += totalHrs;
+          secCSUs += csus;
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${task.name}</td>
+            <td><input type="number" step="0.1" value="${task.nonProd}" data-s="${section.section}" data-i="${idx}" class="nonprod"></td>
+            <td><input type="number" step="0.1" value="${task.prod}" data-s="${section.section}" data-i="${idx}" class="prod"></td>
+            <td><input type="number" step="1" min="0" value="${task.qty}" data-s="${section.section}" data-i="${idx}" class="qty"></td>
+            <td>${totalHrs.toFixed(1)}</td>
+            <td>${csus.toFixed(1)}</td>
+            <td><input type="text" value="${task.comment}" data-s="${section.section}" data-i="${idx}" class="comment-input"></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        // Section total row
+        const totalRow = document.createElement("tr");
+        totalRow.className = "totals";
+        totalRow.innerHTML = `
+          <td><strong>Section Total</strong></td>
+          <td><strong>${secNonProd.toFixed(1)}</strong></td>
+          <td><strong>${secProd.toFixed(1)}</strong></td>
+          <td></td>
+          <td><strong>${secTotal.toFixed(1)}</strong></td>
+          <td><strong>${secCSUs.toFixed(1)}</strong></td>
+          <td></td>
+        `;
+        tbody.appendChild(totalRow);
+
+        grandNonProd += secNonProd;
+        grandProd += secProd;
+        grandTotal += secTotal;
+        grandCSUs += secCSUs;
+      });
+
+      // Grand total
+      const grandDiv = document.createElement("div");
+      grandDiv.className = "section grand-total";
+      grandDiv.innerHTML = `
+        <div class="section-header">Grand Total</div>
+        <table>
+          <tr class="grand-totals">
+            <td><strong>Grand Total</strong></td>
+            <td><strong>${grandNonProd.toFixed(1)}</strong></td>
+            <td><strong>${grandProd.toFixed(1)}</strong></td>
+            <td></td>
+            <td><strong>${grandTotal.toFixed(1)}</strong></td>
+            <td><strong>${grandCSUs.toFixed(1)}</strong></td>
+            <td></td>
+          </tr>
+        </table>
+      `;
+      container.appendChild(grandDiv);
+
+      // Rebind event listeners
+      document.querySelectorAll("input").forEach(el => {
+        el.addEventListener("input", updateData);
+      });
+    }
+
+    function updateData(e) {
+      const el = e.target;
+      const sectionName = el.dataset.s;
+      const idx = parseInt(el.dataset.i);
+      const section = template.find(s => s.section === sectionName);
+      const task = section.tasks[idx];
+
+      if (el.classList.contains("nonprod")) task.nonProd = parseFloat(el.value) || 0;
+      if (el.classList.contains("prod")) task.prod = parseFloat(el.value) || 0;
+      if (el.classList.contains("qty")) task.qty = parseInt(el.value) || 0;
+      if (el.classList.contains("comment-input")) task.comment = el.value;
+
+      renderForm();
+    }
+
+    function downloadXLSX() {
+      const wb = XLSX.utils.book_new();
+      const data = [];
+      data.push(["Section", "Task", "Non-Prod Hrs", "Prod Hrs", "Qty", "Total Hrs", "CSUs", "Comment"]);
+
+      template.forEach(sec => {
+        sec.tasks.forEach(t => {
+          const total = (t.nonProd + t.prod) * t.qty;
+          const csus = total / 2;
+          data.push([
+            sec.section,
+            t.name,
+            t.nonProd,
+            t.prod,
+            t.qty,
+            parseFloat(total.toFixed(2)),
+            parseFloat(csus.toFixed(2)),
+            t.comment
+          ]);
+        });
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, "Estimation");
+      XLSX.writeFile(wb, "SCM_Estimation_Catalog_Filled.xlsx");
+    }
+
+    renderForm();
+  </script>
+</body>
+</html>
