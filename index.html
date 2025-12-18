@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Redwood Adoption Estimator (FEO + SCM)</title>
+  <title>Redwood Adoption Estimator (Per-Product Weighted)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
       --overview-bg: #e3f2fd;
       --feature-bg: #f3e5f5;
       --personalization-bg: #e8f5e9;
+      --product-bg: #fff3e0;
       --grand-bg: #fce4ec;
     }
     body {
@@ -110,7 +111,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
     .section.overview { background-color: var(--overview-bg); }
-    .section.features { background-color: var(--feature-bg); }
+    .section.product { background-color: var(--product-bg); }
     .section.personalization { background-color: var(--personalization-bg); }
     .section-header {
       padding: 10px 16px;
@@ -150,7 +151,7 @@
 <body>
 
 <div class="header">
-  <h1>Redwood Adoption Estimator (FEO + SCM)</h1>
+  <h1>Redwood Adoption Estimator (Per-Product Weighted)</h1>
 </div>
 
 <div class="dashboard">
@@ -163,17 +164,13 @@
     <input type="number" id="moduleCount" value="0" readonly>
   </div>
   <div class="stat-card">
-    <label>Total Features</label>
-    <input type="number" id="featureCount" value="0" readonly>
-  </div>
-  <div class="stat-card">
-    <label>Avg Product Weight</label>
-    <input type="text" id="avgWeight" value="1.00" readonly>
+    <label>Products Selected</label>
+    <input type="number" id="productCount" value="0" readonly>
   </div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="selector">1. Select Products & Modules</div>
+  <div class="tab active" data-tab="selector">1. Select Modules</div>
   <div class="tab" data-tab="estimation">2. Estimation Catalog</div>
 </div>
 
@@ -187,7 +184,7 @@
 </div>
 
 <script>
-  // === CLEANED & DEDUPLICATED DATA FROM YOUR FILES ===
+  // === DATA FROM YOUR EXCEL FILES ===
   const PRODUCTS = [
     { name: "SCM Common Components", weight: 0.5 },
     { name: "Inventory Management", weight: 1.2 },
@@ -205,7 +202,7 @@
     { name: "Supply Chain Planning", weight: 1.2 }
   ];
 
-  // Modules with accurate counts from "Use This" section of Rough.xlsx
+  // Cleaned module list from "Use This" sheet in Rough.xlsx
   const MODULES = [
     { name: "SCM Common Components", count: 1, product: "SCM Common Components" },
     { name: "Configuration and Extensibility", count: 1, product: "SCM Common Components" },
@@ -264,41 +261,21 @@
     { name: "Supply Planning", count: 57, product: "Supply Chain Planning" }
   ];
 
-  const template = [
-    {
-      section: "Overview",
-      class: "overview",
-      tasks: [
-        { name: "Discussion", detail: "Multiple Discussions with Customer educating on Redwood Process", nonProd: 4, prod: 4, qty: 1 },
-        { name: "Documentation", detail: "CWB's, Impact Assessment Document, Adoption Document", nonProd: 8, prod: 8, qty: 1 },
-        { name: "Demo/ Review", detail: "Walk Through of Feature Before and After Adoption", nonProd: 4, prod: 4, qty: 1 }
-      ]
-    },
-    {
-      section: "Enablement of Applicable Features",
-      class: "features",
-      tasks: [
-        { name: "Features Enablement", detail: "Enabling Feature by Feature via setup, Profile option, Opt-in", nonProd: 0.1, prod: 0.1, qty: 0 },
-        { name: "Verification at Config Level", detail: "Verify all features enabled at config level", nonProd: 0.1, prod: 0.1, qty: 0 },
-        { name: "Verification at UI", detail: "UI validation post-enablement", nonProd: 8, prod: 8, qty: 1 },
-        { name: "Unit Testing w/o Personalization", detail: "Testing of Standard Process", nonProd: 24, prod: 0, qty: 1 },
-        { name: "Classic vs Redwood Comparison", detail: "Column-by-column comparison", nonProd: 16, prod: 0, qty: 1 }
-      ]
-    },
-    {
-      section: "Personalization & Production Migration",
-      class: "personalization",
-      tasks: [
-        { name: "Enablement & Migration", detail: "Per personalization time / Env", nonProd: 2, prod: 1, qty: 15 },
-        { name: "Testing After Personalizations", detail: "End-to-end testing with personalizations", nonProd: 40, prod: 0, qty: 1 },
-        { name: "Additional Personalization - Expected", detail: "Extra personalizations based on scope", nonProd: 2, prod: 1, qty: 5 },
-        { name: "Issue Resolution - UAT / Post Go-Live", detail: "Bug fixes and issue resolution", nonProd: 0, prod: 4, qty: 8 }
-      ]
-    }
+  // Fixed global tasks (unweighted)
+  const OVERVIEW_TASKS = [
+    { name: "Discussion", detail: "Multiple Discussions with Customer educating on Redwood Process", nonProd: 4, prod: 4, qty: 1 },
+    { name: "Documentation", detail: "CWB's, Impact Assessment Document, Adoption Document", nonProd: 8, prod: 8, qty: 1 },
+    { name: "Demo/ Review", detail: "Walk Through of Feature Before and After Adoption", nonProd: 4, prod: 4, qty: 1 }
+  ];
+
+  const PERSONALIZATION_TASKS = [
+    { name: "Enablement & Migration", detail: "Per personalization time / Env", nonProd: 2, prod: 1, qty: 15 },
+    { name: "Testing After Personalizations", detail: "End-to-end testing with personalizations", nonProd: 40, prod: 0, qty: 1 },
+    { name: "Additional Personalization - Expected", detail: "Extra personalizations based on scope", nonProd: 2, prod: 1, qty: 5 },
+    { name: "Issue Resolution - UAT / Post Go-Live", detail: "Bug fixes and issue resolution", nonProd: 0, prod: 4, qty: 8 }
   ];
 
   let selectedModules = new Set();
-  let selectedProducts = new Set();
 
   // === INIT ===
   window.onload = function() {
@@ -327,9 +304,9 @@
       const productDiv = document.createElement('div');
       productDiv.className = 'section';
 
-      // Count how many modules under this product are selected
+      const modulesInProduct = MODULES.filter(m => m.product === product.name);
       let productModuleCount = 0;
-      MODULES.filter(m => m.product === product.name).forEach(m => {
+      modulesInProduct.forEach(m => {
         if (selectedModules.has(m.name)) productModuleCount++;
       });
 
@@ -344,14 +321,14 @@
       container.appendChild(productDiv);
 
       const tbody = document.getElementById(`mods_${product.name.replace(/\s+/g, '_')}`);
-      MODULES.filter(m => m.product === product.name).forEach(mod => {
+      modulesInProduct.forEach(mod => {
         const isSelected = selectedModules.has(mod.name);
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${mod.name}</td>
           <td>${mod.count}</td>
           <td><button class="btn-toggle ${isSelected ? 'btn-y' : 'btn-n'}" 
-            onclick="toggleModule('${mod.name}', '${product.name}')">
+            onclick="toggleModule('${mod.name}')">
             ${isSelected ? 'Y' : 'N'}
           </button></td>`;
         tbody.appendChild(row);
@@ -360,130 +337,107 @@
     updateSummary();
   }
 
-  function toggleModule(moduleName, productName) {
-    const wasSelected = selectedModules.has(moduleName);
-    if (wasSelected) {
+  function toggleModule(moduleName) {
+    if (selectedModules.has(moduleName)) {
       selectedModules.delete(moduleName);
-      // Check if any module remains in this product
-      const hasOther = MODULES
-        .filter(m => m.product === productName)
-        .some(m => selectedModules.has(m.name) && m.name !== moduleName);
-      if (!hasOther) selectedProducts.delete(productName);
     } else {
       selectedModules.add(moduleName);
-      selectedProducts.add(productName);
     }
     renderSelector();
-    autoUpdateFeatureQty();
     renderForm();
   }
 
   function updateSummary() {
-    let totalFeatures = 0;
-    selectedModules.forEach(name => {
-      const mod = MODULES.find(m => m.name === name);
-      if (mod) totalFeatures += mod.count;
-    });
-
-    let avgWeight = 1.0;
-    if (selectedProducts.size > 0) {
-      let totalW = 0;
-      selectedProducts.forEach(p => {
-        const prod = PRODUCTS.find(pr => pr.name === p);
-        if (prod) totalW += prod.weight;
-      });
-      avgWeight = totalW / selectedProducts.size;
-    }
-
     document.getElementById('moduleCount').value = selectedModules.size;
-    document.getElementById('featureCount').value = totalFeatures;
-    document.getElementById('avgWeight').value = avgWeight.toFixed(2);
-  }
-
-  function autoUpdateFeatureQty() {
-    let totalFeatures = 0;
+    
+    const selectedProducts = new Set();
     selectedModules.forEach(name => {
       const mod = MODULES.find(m => m.name === name);
-      if (mod) totalFeatures += mod.count;
+      if (mod) selectedProducts.add(mod.product);
     });
-    // Auto-fill per-feature rows
-    template[1].tasks[0].qty = totalFeatures; // Features Enablement
-    template[1].tasks[1].qty = totalFeatures; // Config Verification
-    // Keep UI/Testing at 1 if any feature selected
-    const hasFeatures = totalFeatures > 0;
-    template[1].tasks[2].qty = hasFeatures ? 1 : 0;
-    template[1].tasks[3].qty = hasFeatures ? 1 : 0;
-    template[1].tasks[4].qty = hasFeatures ? 1 : 0;
+    document.getElementById('productCount').value = selectedProducts.size;
   }
 
   function renderForm() {
     const container = document.getElementById("formContainer");
     container.innerHTML = "";
 
-    let gNP = 0, gP = 0, gT = 0, gC = 0;
+    // === 1. Overview (Global, Unweighted) ===
+    renderSection("Overview", "overview", OVERVIEW_TASKS, false);
 
-    template.forEach((sec, sIdx) => {
-      const div = document.createElement("div");
-      div.className = `section ${sec.class}`;
-
-      let rows = "";
-      let sNP = 0, sP = 0, sT = 0, sC = 0;
-
-      sec.tasks.forEach((t, tIdx) => {
-        const total = (t.nonProd + t.prod) * t.qty;
-        const csu = total / 2;
-
-        sNP += t.nonProd * t.qty;
-        sP += t.prod * t.qty;
-        sT += total;
-        sC += csu;
-
-        rows += `
-          <tr>
-            <td class="task-name">${t.name}</td>
-            <td class="task-details">${t.detail}</td>
-            <td><input type="number" step="0.1" value="${t.nonProd}"
-              oninput="updateTask(${sIdx},${tIdx},'nonProd',this.value)"></td>
-            <td><input type="number" step="0.1" value="${t.prod}"
-              oninput="updateTask(${sIdx},${tIdx},'prod',this.value)"></td>
-            <td><input type="number" step="1" min="0" value="${t.qty}"
-              oninput="updateTask(${sIdx},${tIdx},'qty',this.value)"></td>
-            <td>${total.toFixed(1)}</td>
-            <td>${csu.toFixed(1)}</td>
-          </tr>`;
-      });
-
-      gNP += sNP; gP += sP; gT += sT; gC += sC;
-
-      div.innerHTML = `
-        <div class="section-header">${sec.section}</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Task</th>
-              <th>Task Details</th>
-              <th>Non-Prod Hrs</th>
-              <th>Prod Hrs</th>
-              <th>Qty</th>
-              <th>Total Hrs</th>
-              <th>CSUs</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-            <tr class="totals">
-              <td colspan="2"><strong>Section Total</strong></td>
-              <td>${sNP.toFixed(1)}</td>
-              <td>${sP.toFixed(1)}</td>
-              <td></td>
-              <td>${sT.toFixed(1)}</td>
-              <td>${sC.toFixed(1)}</td>
-            </tr>
-          </tbody>
-        </table>`;
-      container.appendChild(div);
+    // === 2. Per-Product Sections ===
+    const selectedProducts = new Set();
+    selectedModules.forEach(name => {
+      const mod = MODULES.find(m => m.name === name);
+      if (mod) selectedProducts.add(mod.product);
     });
 
+    let grandNonProd = 0, grandProd = 0, grandTotal = 0, grandCSUs = 0;
+
+    // Add overview totals
+    let secNP = 0, secP = 0, secT = 0, secC = 0;
+    OVERVIEW_TASKS.forEach(t => {
+      const total = (t.nonProd + t.prod) * t.qty;
+      const csu = total / 2;
+      secNP += t.nonProd * t.qty;
+      secP += t.prod * t.qty;
+      secT += total;
+      secC += csu;
+    });
+    grandNonProd += secNP; grandProd += secP; grandTotal += secT; grandCSUs += secC;
+
+    // Per-product sections
+    selectedProducts.forEach(productName => {
+      const product = PRODUCTS.find(p => p.name === productName);
+      if (!product) return;
+
+      // Sum feature count for this product
+      let featureCount = 0;
+      MODULES.filter(m => m.product === productName).forEach(m => {
+        if (selectedModules.has(m.name)) featureCount += m.count;
+      });
+
+      const productTasks = [
+        { name: "Features Enablement", detail: "Enabling Feature by Feature via setup, Profile option, Opt-in", nonProd: 0.1, prod: 0.1, qty: featureCount },
+        { name: "Config Verification", detail: "Verify all features enabled at config level", nonProd: 0.1, prod: 0.1, qty: featureCount },
+        { name: "UI Verification", detail: "UI validation post-enablement", nonProd: 8, prod: 8, qty: 1 },
+        { name: "Unit Testing w/o Personalization", detail: "Testing of Standard Process", nonProd: 24, prod: 0, qty: 1 },
+        { name: "Classic vs Redwood Comparison", detail: "Column-by-column comparison", nonProd: 16, prod: 0, qty: 1 }
+      ];
+
+      // Apply weight to non-feature tasks
+      productTasks[2].nonProd *= product.weight;
+      productTasks[2].prod *= product.weight;
+      productTasks[3].nonProd *= product.weight;
+      productTasks[4].nonProd *= product.weight;
+
+      renderSection(`Enablement: ${productName}`, "product", productTasks, true);
+
+      // Add to grand total
+      productTasks.forEach(t => {
+        const total = (t.nonProd + t.prod) * t.qty;
+        const csu = total / 2;
+        grandNonProd += t.nonProd * t.qty;
+        grandProd += t.prod * t.qty;
+        grandTotal += total;
+        grandCSUs += csu;
+      });
+    });
+
+    // === 3. Personalization (Global, Unweighted) ===
+    renderSection("Personalization & Production Migration", "personalization", PERSONALIZATION_TASKS, false);
+
+    // Add personalization totals
+    PERSONALIZATION_TASKS.forEach(t => {
+      const total = (t.nonProd + t.prod) * t.qty;
+      const csu = total / 2;
+      grandNonProd += t.nonProd * t.qty;
+      grandProd += t.prod * t.qty;
+      grandTotal += total;
+      grandCSUs += csu;
+    });
+
+    // === Grand Total ===
     const gDiv = document.createElement("div");
     gDiv.className = "section grand-total";
     gDiv.innerHTML = `
@@ -491,39 +445,117 @@
       <table>
         <tr class="totals">
           <td colspan="2"><strong>Grand Total</strong></td>
-          <td>${gNP.toFixed(1)}</td>
-          <td>${gP.toFixed(1)}</td>
+          <td>${grandNonProd.toFixed(1)}</td>
+          <td>${grandProd.toFixed(1)}</td>
           <td></td>
-          <td>${gT.toFixed(1)}</td>
-          <td>${gC.toFixed(1)}</td>
+          <td>${grandTotal.toFixed(1)}</td>
+          <td>${grandCSUs.toFixed(1)}</td>
         </tr>
       </table>`;
     container.appendChild(gDiv);
   }
 
-  function updateTask(s, t, key, value) {
-    template[s].tasks[t][key] = key === 'qty' ? (parseInt(value) || 0) : (parseFloat(value) || 0);
-    renderForm();
+  function renderSection(title, cssClass, tasks, isProduct) {
+    const container = document.getElementById("formContainer");
+    const div = document.createElement("div");
+    div.className = `section ${cssClass}`;
+
+    let rows = "";
+    tasks.forEach((t, idx) => {
+      const total = (t.nonProd + t.prod) * t.qty;
+      const csu = total / 2;
+      rows += `
+        <tr>
+          <td class="task-name">${t.name}</td>
+          <td class="task-details">${t.detail}</td>
+          <td>${t.nonProd.toFixed(1)}</td>
+          <td>${t.prod.toFixed(1)}</td>
+          <td>${t.qty}</td>
+          <td>${total.toFixed(1)}</td>
+          <td>${csu.toFixed(1)}</td>
+        </tr>`;
+    });
+
+    div.innerHTML = `
+      <div class="section-header">${title}</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Task Details</th>
+            <th>Non-Prod Hrs</th>
+            <th>Prod Hrs</th>
+            <th>Qty</th>
+            <th>Total Hrs</th>
+            <th>CSUs</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="totals">
+            <td colspan="2"><strong>Section Total</strong></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>`;
+    container.appendChild(div);
   }
 
   function downloadAll() {
     const wb = XLSX.utils.book_new();
 
     // Summary
+    const selectedProducts = new Set();
+    selectedModules.forEach(name => {
+      const mod = MODULES.find(m => m.name === name);
+      if (mod) selectedProducts.add(mod.product);
+    });
     const summary = [
       ["Customer Name", document.getElementById('customerName').value],
       ["Modules Selected", selectedModules.size],
-      ["Total Features", document.getElementById('featureCount').value],
-      ["Avg Product Weight", document.getElementById('avgWeight').value]
+      ["Products Selected", selectedProducts.size]
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), "Summary");
 
     // Estimation
     const estData = [["Section","Task","Task Details","Non-Prod Hrs","Prod Hrs","Qty","Total Hrs","CSUs"]];
-    template.forEach(s => s.tasks.forEach(t => {
+    
+    // Overview
+    OVERVIEW_TASKS.forEach(t => {
       const total = (t.nonProd + t.prod) * t.qty;
-      estData.push([s.section, t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
-    }));
+      estData.push(["Overview", t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
+    });
+
+    // Per-Product
+    selectedProducts.forEach(productName => {
+      const product = PRODUCTS.find(p => p.name === productName);
+      let featureCount = 0;
+      MODULES.filter(m => m.product === productName).forEach(m => {
+        if (selectedModules.has(m.name)) featureCount += m.count;
+      });
+      const tasks = [
+        { name: "Features Enablement", detail: "Enabling Feature by Feature via setup, Profile option, Opt-in", nonProd: 0.1, prod: 0.1, qty: featureCount },
+        { name: "Config Verification", detail: "Verify all features enabled at config level", nonProd: 0.1, prod: 0.1, qty: featureCount },
+        { name: "UI Verification", detail: "UI validation post-enablement", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
+        { name: "Unit Testing w/o Personalization", detail: "Testing of Standard Process", nonProd: 24 * product.weight, prod: 0, qty: 1 },
+        { name: "Classic vs Redwood Comparison", detail: "Column-by-column comparison", nonProd: 16 * product.weight, prod: 0, qty: 1 }
+      ];
+      tasks.forEach(t => {
+        const total = (t.nonProd + t.prod) * t.qty;
+        estData.push([`Enablement: ${productName}`, t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
+      });
+    });
+
+    // Personalization
+    PERSONALIZATION_TASKS.forEach(t => {
+      const total = (t.nonProd + t.prod) * t.qty;
+      estData.push(["Personalization", t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
+    });
+
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(estData), "Estimation");
 
     // Modules
@@ -532,8 +564,11 @@
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(modData), "Modules");
 
     // Products
-    const prodData = [["Product", "Weightage", "Has Selected Modules"]];
-    PRODUCTS.forEach(p => prodData.push([p.name, p.weight, selectedProducts.has(p.name) ? "Yes" : "No"]));
+    const prodData = [["Product", "Weightage", "Selected"]];
+    PRODUCTS.forEach(p => {
+      const isSelected = MODULES.some(m => m.product === p.name && selectedModules.has(m.name));
+      prodData.push([p.name, p.weight, isSelected ? "Y" : "N"]);
+    });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prodData), "Products");
 
     XLSX.writeFile(wb, "Redwood_Adoption_Estimation.xlsx");
@@ -541,3 +576,5 @@
 </script>
 </body>
 </html>
+
+
