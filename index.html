@@ -1,177 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Redwood Adoption Estimator (Per-Product Weighted)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    :root {
-      --overview-bg: #e3f2fd;
-      --feature-bg: #f3e5f5;
-      --personalization-bg: #e8f5e9;
-      --product-bg: #fff3e0;
-      --grand-bg: #fce4ec;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #f5f7fa;
-      margin: 0;
-      padding: 0;
-      color: #333;
-    }
-    .header {
-      background: #1a73e8;
-      color: white;
-      padding: 16px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .header h1 { margin: 0; font-size: 1.5rem; }
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      padding: 16px;
-      background: white;
-      border-bottom: 1px solid #eee;
-    }
-    .stat-card label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: bold;
-      color: #555;
-      margin-bottom: 4px;
-    }
-    .stat-card input {
-      width: 100%;
-      padding: 6px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .tabs {
-      display: flex;
-      background: #f1f3f5;
-      padding: 0 20px;
-      border-bottom: 1px solid #ddd;
-    }
-    .tab {
-      padding: 12px 20px;
-      cursor: pointer;
-      font-weight: 600;
-      color: #5f6368;
-      border-bottom: 3px solid transparent;
-    }
-    .tab:hover { color: #1a73e8; }
-    .tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
-    .tab-content {
-      display: none;
-      padding: 20px;
-    }
-    .tab-content.active { display: block; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: center;
-      vertical-align: top;
-    }
-    th {
-      background: #f5f9ff;
-      font-weight: 600;
-    }
-    td.task-name { text-align: left; font-weight: bold; }
-    td.task-details { text-align: left; font-size: 0.95em; color: #444; max-width: 350px; }
-    input[type="number"] {
-      width: 80px;
-      padding: 6px;
-      border: 1px solid #90a4ae;
-      border-radius: 4px;
-      text-align: center;
-    }
-    .btn-toggle {
-      padding: 4px 12px;
-      border: 1px solid #ccc;
-      border-radius: 20px;
-      background: #fff;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 0.9rem;
-    }
-    .btn-y { background: #e6f4ea; color: #137333; border-color: #137333; }
-    .btn-n { background: #fce8e6; color: #c5221f; border-color: #c5221f; }
-    .section {
-      margin-bottom: 24px;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-    .section.overview { background-color: var(--overview-bg); }
-    .section.product { background-color: var(--product-bg); }
-    .section.personalization { background-color: var(--personalization-bg); }
-    .section-header {
-      padding: 10px 16px;
-      font-weight: bold;
-      background: rgba(255,255,255,0.8);
-      border-bottom: 1px solid #ccc;
-    }
-    .totals td {
-      font-weight: bold;
-      background: #f0f0f0;
-    }
-    .grand-total {
-      background: var(--grand-bg);
-    }
-    .scroll-table {
-      max-height: 450px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    button.download {
-      display: block;
-      margin: 24px auto;
-      padding: 12px 28px;
-      background: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button.download:hover {
-      background: #388e3c;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Redwood Adoption Estimator (Final)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --overview-bg:#e3f2fd;
+  --product-bg:#fff3e0;
+  --hypercare-bg:#f3e5f5;
+  --grand-bg:#fce4ec;
+}
+body {
+  font-family:'Segoe UI',Tahoma,sans-serif;
+  background:#f5f7fa;
+  margin:0;
+}
+.header {
+  background:#1a73e8;
+  color:#fff;
+  padding:16px 20px;
+}
+.dashboard {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+  padding:16px;
+  background:#fff;
+}
+.tabs {
+  display:flex;
+  background:#f1f3f5;
+  padding:0 20px;
+  border-bottom:1px solid #ddd;
+}
+.tab {
+  padding:12px 20px;
+  cursor:pointer;
+  font-weight:600;
+}
+.tab.active {
+  color:#1a73e8;
+  border-bottom:3px solid #1a73e8;
+}
+.tab-content {
+  display:none;
+  padding:20px;
+}
+.tab-content.active { display:block; }
+
+.section {
+  margin-bottom:24px;
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+.section-header {
+  padding:10px 16px;
+  font-weight:bold;
+  background:rgba(255,255,255,0.9);
+  border-bottom:1px solid #ccc;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+th,td {
+  padding:8px;
+  border:1px solid #ddd;
+  text-align:center;
+}
+th { background:#f5f9ff; }
+td.task-name { text-align:left; font-weight:bold; }
+td.task-details { text-align:left; }
+input[type="number"] {
+  width:80px;
+  padding:4px;
+  text-align:center;
+}
+button.download {
+  margin:24px auto;
+  display:block;
+  padding:12px 28px;
+  background:#4caf50;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  font-size:16px;
+  cursor:pointer;
+}
+</style>
 </head>
+
 <body>
 
 <div class="header">
-  <h1>Redwood Adoption Estimator (Per-Product Weighted)</h1>
+  <h2>Redwood Adoption Estimator</h2>
 </div>
 
 <div class="dashboard">
-  <div class="stat-card">
+  <div>
     <label>Customer Name</label>
-    <input type="text" id="customerName" value="Global Enterprises">
+    <input id="customerName" value="Global Enterprises"/>
   </div>
-  <div class="stat-card">
+  <div>
     <label>Modules Selected</label>
-    <input type="number" id="moduleCount" value="0" readonly>
+    <input id="moduleCount" readonly/>
   </div>
-  <div class="stat-card">
+  <div>
     <label>Products Selected</label>
-    <input type="number" id="productCount" value="0" readonly>
+    <input id="productCount" readonly/>
   </div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="selector">1. Select Modules</div>
-  <div class="tab" data-tab="estimation">2. Estimation Catalog</div>
+  <div class="tab active" data-tab="selector">1. Selector</div>
+  <div class="tab" data-tab="estimation">2. Estimation</div>
+  <div class="tab" onclick="checkAdminPassword()">3. 🔒 Admin</div>
 </div>
 
 <div id="selector" class="tab-content active">
@@ -180,401 +127,392 @@
 
 <div id="estimation" class="tab-content">
   <div id="formContainer"></div>
-  <button class="download" onclick="downloadAll()">📥 Download Full Estimation (.xlsx)</button>
+  <button class="download" onclick="downloadAll()">📥 Download Full Estimation</button>
+</div>
+
+<div id="admin" class="tab-content">
+  <div id="adminContainer"></div>
+  <button class="download" onclick="downloadAll()">📥 Download Full Estimation</button>
 </div>
 
 <script>
-  // === DATA FROM YOUR EXCEL FILES ===
-  const PRODUCTS = [
-    { name: "SCM Common Components", weight: 0.5 },
-    { name: "Inventory Management", weight: 1.2 },
-    { name: "Maintenance", weight: 1.2 },
-    { name: "Manufacturing", weight: 1.5 },
-    { name: "Order Management", weight: 1.0 },
-    { name: "Collaboration Messaging Framework", weight: 1.0 },
-    { name: "Procurement", weight: 1.0 },
-    { name: "Product Hub", weight: 1.0 },
-    { name: "Purchasing", weight: 1.0 },
-    { name: "Quality Management", weight: 1.1 },
-    { name: "Self Service Procurement & RSSP", weight: 1.0 },
-    { name: "Supply Chain Collaboration", weight: 1.0 },
-    { name: "Supply Chain Orchestration", weight: 1.1 },
-    { name: "Supply Chain Planning", weight: 1.2 }
-  ];
+/* =========================
+   MASTER DATA
+========================= */
 
-  // Cleaned module list from "Use This" sheet in Rough.xlsx
-  const MODULES = [
-    { name: "SCM Common Components", count: 1, product: "SCM Common Components" },
-    { name: "Configuration and Extensibility", count: 1, product: "SCM Common Components" },
-    { name: "Journeys", count: 3, product: "SCM Common Components" },
-    { name: "Advanced Inventory Management", count: 8, product: "Inventory Management" },
-    { name: "Configure to order", count: 1, product: "Inventory Management" },
-    { name: "Cost Management", count: 43, product: "Inventory Management" },
-    { name: "E-signatures & E- records", count: 2, product: "Inventory Management" },
-    { name: "Fiscal Document Capture", count: 5, product: "Inventory Management" },
-    { name: "Intrastat", count: 2, product: "Inventory Management" },
-    { name: "Inventory Management", count: 68, product: "Inventory Management" },
-    { name: "Land Cost Management", count: 12, product: "Inventory Management" },
-    { name: "Mobile Inventory", count: 18, product: "Inventory Management" },
-    { name: "Product Recall Management", count: 1, product: "Inventory Management" },
-    { name: "Receipt Accounting", count: 6, product: "Inventory Management" },
-    { name: "Receiving", count: 25, product: "Inventory Management" },
-    { name: "Shipping", count: 14, product: "Inventory Management" },
-    { name: "Supply Chain Financial Orchestration", count: 8, product: "Inventory Management" },
-    { name: "Maintenance", count: 22, product: "Maintenance" },
-    { name: "Service Logistics", count: 11, product: "Maintenance" },
-    { name: "Flow Manufacturing", count: 7, product: "Manufacturing" },
-    { name: "Kanban", count: 3, product: "Manufacturing" },
-    { name: "Manufacturing", count: 38, product: "Manufacturing" },
-    { name: "Smart Operations", count: 36, product: "Manufacturing" },
-    { name: "Channel Revenue Management", count: 9, product: "Order Management" },
-    { name: "Configration", count: 3, product: "Order Management" },
-    { name: "Global Order Promising", count: 13, product: "Order Management" },
-    { name: "Order Management", count: 26, product: "Order Management" },
-    { name: "Pricing", count: 18, product: "Order Management" },
-    { name: "Collaboration Messaging Framework", count: 19, product: "Collaboration Messaging Framework" },
-    { name: "Common Procurement", count: 3, product: "Procurement" },
-    { name: "External Purchase Prices", count: 3, product: "Procurement" },
-    { name: "Procurement Contracts", count: 2, product: "Procurement" },
-    { name: "Sourcing", count: 38, product: "Procurement" },
-    { name: "Spend Classification", count: 2, product: "Procurement" },
-    { name: "SQM", count: 4, product: "Procurement" },
-    { name: "Supplier Model", count: 14, product: "Procurement" },
-    { name: "Supplier Portal", count: 3, product: "Procurement" },
-    { name: "Supplier Qualification Management", count: 6, product: "Procurement" },
-    { name: "Product Management", count: 15, product: "Product Hub" },
-    { name: "Product Development", count: 7, product: "Product Hub" },
-    { name: "Product Development & Product Hub Common", count: 2, product: "Product Hub" },
-    { name: "Product Hub", count: 3, product: "Product Hub" },
-    { name: "Product Lifecycle Management Common", count: 3, product: "Product Hub" },
-    { name: "Purchasing", count: 65, product: "Purchasing" },
-    { name: "Quality Inspection Management", count: 11, product: "Quality Management" },
-    { name: "Redwood Self Service Procurement", count: 75, product: "Self Service Procurement & RSSP" },
-    { name: "Self Service Procurement", count: 3, product: "Self Service Procurement & RSSP" },
-    { name: "Responsive Self Service Procurement", count: 32, product: "Self Service Procurement & RSSP" },
-    { name: "Supply Chain Collaboration", count: 12, product: "Supply Chain Collaboration" },
-    { name: "Supply Chain Orchestration", count: 25, product: "Supply Chain Orchestration" },
-    { name: "Backlog Management", count: 5, product: "Supply Chain Planning" },
-    { name: "Demand Management", count: 34, product: "Supply Chain Planning" },
-    { name: "Replenishment Planning", count: 40, product: "Supply Chain Planning" },
-    { name: "Sales and Operations Planning", count: 39, product: "Supply Chain Planning" },
-    { name: "Supply Planning", count: 57, product: "Supply Chain Planning" }
-  ];
+const PRODUCTS = [
+  { name: "SCM Common Components", weight: 0.5 },
+  { name: "Inventory Management", weight: 1.2 },
+  { name: "Maintenance", weight: 1.2 },
+  { name: "Manufacturing", weight: 1.5 },
+  { name: "Order Management", weight: 1.0 },
+  { name: "Collaboration Messaging Framework", weight: 1.0 },
+  { name: "Procurement", weight: 1.0 },
+  { name: "Product Hub", weight: 1.0 },
+  { name: "Purchasing", weight: 1.0 },
+  { name: "Quality Management", weight: 1.1 },
+  { name: "Self Service Procurement & RSSP", weight: 1.0 },
+  { name: "Supply Chain Collaboration", weight: 1.0 },
+  { name: "Supply Chain Orchestration", weight: 1.1 },
+  { name: "Supply Chain Planning", weight: 1.2 }
+];
 
-  // Fixed global tasks (unweighted)
-  const OVERVIEW_TASKS = [
-    { name: "Discussion", detail: "Multiple Discussions with Customer educating on Redwood Process", nonProd: 4, prod: 4, qty: 1 },
-    { name: "Documentation", detail: "CWB's, Impact Assessment Document, Adoption Document", nonProd: 8, prod: 8, qty: 1 },
-    { name: "Demo/ Review", detail: "Walk Through of Feature Before and After Adoption", nonProd: 4, prod: 4, qty: 1 }
-  ];
+const MODULES = [
+  { name: "SCM Common Components", count: 1, product: "SCM Common Components" },
+  { name: "Configuration and Extensibility", count: 1, product: "SCM Common Components" },
+  { name: "Journeys", count: 3, product: "SCM Common Components" },
+  { name: "Advanced Inventory Management", count: 8, product: "Inventory Management" },
+  { name: "Configure to order", count: 1, product: "Inventory Management" },
+  { name: "Cost Management", count: 43, product: "Inventory Management" },
+  { name: "E-signatures & E- records", count: 2, product: "Inventory Management" },
+  { name: "Fiscal Document Capture", count: 5, product: "Inventory Management" },
+  { name: "Intrastat", count: 2, product: "Inventory Management" },
+  { name: "Inventory Management", count: 68, product: "Inventory Management" },
+  { name: "Land Cost Management", count: 12, product: "Inventory Management" },
+  { name: "Mobile Inventory", count: 18, product: "Inventory Management" },
+  { name: "Product Recall Management", count: 1, product: "Inventory Management" },
+  { name: "Receipt Accounting", count: 6, product: "Inventory Management" },
+  { name: "Receiving", count: 25, product: "Inventory Management" },
+  { name: "Shipping", count: 14, product: "Inventory Management" },
+  { name: "Supply Chain Financial Orchestration", count: 8, product: "Inventory Management" },
+  { name: "Maintenance", count: 22, product: "Maintenance" },
+  { name: "Service Logistics", count: 11, product: "Maintenance" },
+  { name: "Flow Manufacturing", count: 7, product: "Manufacturing" },
+  { name: "Kanban", count: 3, product: "Manufacturing" },
+  { name: "Manufacturing", count: 38, product: "Manufacturing" },
+  { name: "Smart Operations", count: 36, product: "Manufacturing" },
+  { name: "Channel Revenue Management", count: 9, product: "Order Management" },
+  { name: "Configration", count: 3, product: "Order Management" },
+  { name: "Global Order Promising", count: 13, product: "Order Management" },
+  { name: "Order Management", count: 26, product: "Order Management" },
+  { name: "Pricing", count: 18, product: "Order Management" },
+  { name: "Collaboration Messaging Framework", count: 19, product: "Collaboration Messaging Framework" },
+  { name: "Common Procurement", count: 3, product: "Procurement" },
+  { name: "External Purchase Prices", count: 3, product: "Procurement" },
+  { name: "Procurement Contracts", count: 2, product: "Procurement" },
+  { name: "Sourcing", count: 38, product: "Procurement" },
+  { name: "Spend Classification", count: 2, product: "Procurement" },
+  { name: "SQM", count: 4, product: "Procurement" },
+  { name: "Supplier Model", count: 14, product: "Procurement" },
+  { name: "Supplier Portal", count: 3, product: "Procurement" },
+  { name: "Supplier Qualification Management", count: 6, product: "Procurement" },
+  { name: "Product Management", count: 15, product: "Product Hub" },
+  { name: "Product Development", count: 7, product: "Product Hub" },
+  { name: "Product Development & Product Hub Common", count: 2, product: "Product Hub" },
+  { name: "Product Hub", count: 3, product: "Product Hub" },
+  { name: "Product Lifecycle Management Common", count: 3, product: "Product Hub" },
+  { name: "Purchasing", count: 65, product: "Purchasing" },
+  { name: "Quality Inspection Management", count: 11, product: "Quality Management" },
+  { name: "Redwood Self Service Procurement", count: 75, product: "Self Service Procurement & RSSP" },
+  { name: "Self Service Procurement", count: 3, product: "Self Service Procurement & RSSP" },
+  { name: "Responsive Self Service Procurement", count: 32, product: "Self Service Procurement & RSSP" },
+  { name: "Supply Chain Collaboration", count: 12, product: "Supply Chain Collaboration" },
+  { name: "Supply Chain Orchestration", count: 25, product: "Supply Chain Orchestration" },
+  { name: "Backlog Management", count: 5, product: "Supply Chain Planning" },
+  { name: "Demand Management", count: 34, product: "Supply Chain Planning" },
+  { name: "Replenishment Planning", count: 40, product: "Supply Chain Planning" },
+  { name: "Sales and Operations Planning", count: 39, product: "Supply Chain Planning" },
+  { name: "Supply Planning", count: 57, product: "Supply Chain Planning" }
+];
 
-  const PERSONALIZATION_TASKS = [
-    { name: "Enablement & Migration", detail: "Per personalization time / Env", nonProd: 2, prod: 1, qty: 15 },
-    { name: "Testing After Personalizations", detail: "End-to-end testing with personalizations", nonProd: 40, prod: 0, qty: 1 },
-    { name: "Additional Personalization - Expected", detail: "Extra personalizations based on scope", nonProd: 2, prod: 1, qty: 5 },
-    { name: "Issue Resolution - UAT / Post Go-Live", detail: "Bug fixes and issue resolution", nonProd: 0, prod: 4, qty: 8 }
-  ];
+/* =========================
+   SINGLE SOURCE OF TRUTH
+========================= */
 
-  let selectedModules = new Set();
+let personalizationCounts = {};
+let selectedModules = new Set();
 
-  // === INIT ===
-  window.onload = function() {
-    setupTabs();
-    renderSelector();
-    renderForm();
-  };
+const DEFAULT_OVERVIEW = [
+  { name:"Discussion", detail:"Muliple Discussions with Customer educating on Redwood Process", nonProd:4, prod:4, qty:1 },
+  { name:"Documentation", detail:"CWB's , Impact Assessment Document , Adoption Document", nonProd:8, prod:8, qty:1 },
+  { name:"Demo / Review", detail:"Walk Through of Feature Before and After Adoption", nonProd:4, prod:4, qty:1 }
+];
 
-  function setupTabs() {
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        e.target.classList.add('active');
-        const target = e.target.dataset.tab;
-        document.getElementById(target).classList.add('active');
-      });
+const DEFAULT_HYPERCARE = [
+  { name:"Production Migration", detail:"Per personalization time / Env", nonProd:0, prod:0.5, qty:0 },
+  { name:"Issue Resolution", detail:"This can Vary with reported issue / Env", nonProd:0, prod:4, qty:0 }
+];
+
+let CONFIG = {
+  overview: structuredClone(DEFAULT_OVERVIEW),
+  products: {}, // will hold per-product task lists
+  hypercare: structuredClone(DEFAULT_HYPERCARE)
+};
+
+/* =========================
+   TAB HANDLING
+========================= */
+
+document.querySelectorAll('.tab[data-tab]').forEach(t=>{
+  t.onclick=()=>activateTab(t.dataset.tab);
+});
+
+function activateTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  if(document.querySelector(`.tab[data-tab="${id}"]`))
+    document.querySelector(`.tab[data-tab="${id}"]`).classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* =========================
+   RENDERING CORE
+========================= */
+
+function renderSection(parent,title,tasks,editable){
+  if(tasks.length===0) return;
+  const sec=document.createElement("div");
+  sec.className="section";
+  sec.innerHTML=`<div class="section-header">${title}</div>`;
+
+  let rows="";
+  tasks.forEach((t,i)=>{
+    const total=(t.nonProd+t.prod)*t.qty;
+    rows+=`
+    <tr>
+      <td class="task-name">${t.name}</td>
+      <td class="task-details">${t.detail}</td>
+      <td>${editable?`<input type="number" step="0.1" value="${t.nonProd}" oninput="updateTask('${title}',${i},'nonProd',this.value)">`:t.nonProd.toFixed(1)}</td>
+      <td>${editable?`<input type="number" step="0.1" value="${t.prod}" oninput="updateTask('${title}',${i},'prod',this.value)">`:t.prod.toFixed(1)}</td>
+      <td>${editable?`<input type="number" value="${t.qty}" oninput="updateTask('${title}',${i},'qty',this.value)">`:t.qty}</td>
+      <td>${total.toFixed(1)}</td>
+      <td>${(total/2).toFixed(1)}</td>
+    </tr>`;
+  });
+
+  sec.innerHTML+=`
+  <table>
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>Details</th>
+        <th>Non-Prod</th>
+        <th>Prod</th>
+        <th>Qty</th>
+        <th>Total</th>
+        <th>CSU</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+  parent.appendChild(sec);
+}
+
+/* =========================
+   MODULE SELECTION
+========================= */
+
+function renderSelector(){
+  const container = document.getElementById('productContainer');
+  container.innerHTML = '';
+  updateSummary();
+
+  PRODUCTS.forEach(product => {
+    const productDiv = document.createElement('div');
+    productDiv.className = 'section';
+
+    const modulesInProduct = MODULES.filter(m => m.product === product.name);
+    let productModuleCount = 0;
+    modulesInProduct.forEach(m => {
+      if (selectedModules.has(m.name)) productModuleCount++;
     });
-  }
 
-  function renderSelector() {
-    const container = document.getElementById('productContainer');
-    container.innerHTML = '';
-
-    PRODUCTS.forEach(product => {
-      const productDiv = document.createElement('div');
-      productDiv.className = 'section';
-
-      const modulesInProduct = MODULES.filter(m => m.product === product.name);
-      let productModuleCount = 0;
-      modulesInProduct.forEach(m => {
-        if (selectedModules.has(m.name)) productModuleCount++;
-      });
-
-      productDiv.innerHTML = `
-        <div class="section-header">
-          ${product.name} (Weight: ${product.weight})
-        </div>
-        <table>
-          <thead><tr><th>Module Name</th><th>Feature Count</th><th>Applicable?</th></tr></thead>
-          <tbody id="mods_${product.name.replace(/\s+/g, '_')}"></tbody>
-        </table>`;
-      container.appendChild(productDiv);
-
-      const tbody = document.getElementById(`mods_${product.name.replace(/\s+/g, '_')}`);
-      modulesInProduct.forEach(mod => {
-        const isSelected = selectedModules.has(mod.name);
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${mod.name}</td>
-          <td>${mod.count}</td>
-          <td><button class="btn-toggle ${isSelected ? 'btn-y' : 'btn-n'}" 
-            onclick="toggleModule('${mod.name}')">
-            ${isSelected ? 'Y' : 'N'}
-          </button></td>`;
-        tbody.appendChild(row);
-      });
-    });
-    updateSummary();
-  }
-
-  function toggleModule(moduleName) {
-    if (selectedModules.has(moduleName)) {
-      selectedModules.delete(moduleName);
-    } else {
-      selectedModules.add(moduleName);
+    if (!personalizationCounts[product.name]) {
+      personalizationCounts[product.name] = 5;
     }
-    renderSelector();
-    renderForm();
-  }
 
-  function updateSummary() {
-    document.getElementById('moduleCount').value = selectedModules.size;
-    
-    const selectedProducts = new Set();
-    selectedModules.forEach(name => {
-      const mod = MODULES.find(m => m.name === name);
-      if (mod) selectedProducts.add(mod.product);
-    });
-    document.getElementById('productCount').value = selectedProducts.size;
-  }
-
-  function renderForm() {
-    const container = document.getElementById("formContainer");
-    container.innerHTML = "";
-
-    // === 1. Overview (Global, Unweighted) ===
-    renderSection("Overview", "overview", OVERVIEW_TASKS, false);
-
-    // === 2. Per-Product Sections ===
-    const selectedProducts = new Set();
-    selectedModules.forEach(name => {
-      const mod = MODULES.find(m => m.name === name);
-      if (mod) selectedProducts.add(mod.product);
-    });
-
-    let grandNonProd = 0, grandProd = 0, grandTotal = 0, grandCSUs = 0;
-
-    // Add overview totals
-    let secNP = 0, secP = 0, secT = 0, secC = 0;
-    OVERVIEW_TASKS.forEach(t => {
-      const total = (t.nonProd + t.prod) * t.qty;
-      const csu = total / 2;
-      secNP += t.nonProd * t.qty;
-      secP += t.prod * t.qty;
-      secT += total;
-      secC += csu;
-    });
-    grandNonProd += secNP; grandProd += secP; grandTotal += secT; grandCSUs += secC;
-
-    // Per-product sections
-    selectedProducts.forEach(productName => {
-      const product = PRODUCTS.find(p => p.name === productName);
-      if (!product) return;
-
-      // Sum feature count for this product
-      let featureCount = 0;
-      MODULES.filter(m => m.product === productName).forEach(m => {
-        if (selectedModules.has(m.name)) featureCount += m.count;
-      });
-
-      const productTasks = [
-        { name: "Features Enablement", detail: "Enabling Feature by Feature via setup, Profile option, Opt-in", nonProd: 0.1, prod: 0.1, qty: featureCount },
-        { name: "Config Verification", detail: "Verify all features enabled at config level", nonProd: 0.1, prod: 0.1, qty: featureCount },
-        { name: "UI Verification", detail: "UI validation post-enablement", nonProd: 8, prod: 8, qty: 1 },
-        { name: "Unit Testing w/o Personalization", detail: "Testing of Standard Process", nonProd: 24, prod: 0, qty: 1 },
-        { name: "Classic vs Redwood Comparison", detail: "Column-by-column comparison", nonProd: 16, prod: 0, qty: 1 }
-      ];
-
-      // Apply weight to non-feature tasks
-      productTasks[2].nonProd *= product.weight;
-      productTasks[2].prod *= product.weight;
-      productTasks[3].nonProd *= product.weight;
-      productTasks[4].nonProd *= product.weight;
-
-      renderSection(`Enablement: ${productName}`, "product", productTasks, true);
-
-      // Add to grand total
-      productTasks.forEach(t => {
-        const total = (t.nonProd + t.prod) * t.qty;
-        const csu = total / 2;
-        grandNonProd += t.nonProd * t.qty;
-        grandProd += t.prod * t.qty;
-        grandTotal += total;
-        grandCSUs += csu;
-      });
-    });
-
-    // === 3. Personalization (Global, Unweighted) ===
-    renderSection("Personalization & Production Migration", "personalization", PERSONALIZATION_TASKS, false);
-
-    // Add personalization totals
-    PERSONALIZATION_TASKS.forEach(t => {
-      const total = (t.nonProd + t.prod) * t.qty;
-      const csu = total / 2;
-      grandNonProd += t.nonProd * t.qty;
-      grandProd += t.prod * t.qty;
-      grandTotal += total;
-      grandCSUs += csu;
-    });
-
-    // === Grand Total ===
-    const gDiv = document.createElement("div");
-    gDiv.className = "section grand-total";
-    gDiv.innerHTML = `
-      <div class="section-header">Grand Total</div>
+    productDiv.innerHTML = `
+      <div class="section-header">${product.name} (Weight: ${product.weight})</div>
+      <div style="padding:0 16px 10px;">
+        <label>Personalizations: 
+          <input type="number" min="0" value="${personalizationCounts[product.name]}" 
+            oninput="updatePersonalization('${product.name}', this.value)">
+        </label>
+      </div>
       <table>
-        <tr class="totals">
-          <td colspan="2"><strong>Grand Total</strong></td>
-          <td>${grandNonProd.toFixed(1)}</td>
-          <td>${grandProd.toFixed(1)}</td>
-          <td></td>
-          <td>${grandTotal.toFixed(1)}</td>
-          <td>${grandCSUs.toFixed(1)}</td>
-        </tr>
+        <thead><tr><th>Module</th><th>Features</th><th>?</th></tr></thead>
+        <tbody id="mods_${product.name.replace(/\s+/g, '_')}"></tbody>
       </table>`;
-    container.appendChild(gDiv);
-  }
+    container.appendChild(productDiv);
 
-  function renderSection(title, cssClass, tasks, isProduct) {
-    const container = document.getElementById("formContainer");
-    const div = document.createElement("div");
-    div.className = `section ${cssClass}`;
-
-    let rows = "";
-    tasks.forEach((t, idx) => {
-      const total = (t.nonProd + t.prod) * t.qty;
-      const csu = total / 2;
-      rows += `
-        <tr>
-          <td class="task-name">${t.name}</td>
-          <td class="task-details">${t.detail}</td>
-          <td>${t.nonProd.toFixed(1)}</td>
-          <td>${t.prod.toFixed(1)}</td>
-          <td>${t.qty}</td>
-          <td>${total.toFixed(1)}</td>
-          <td>${csu.toFixed(1)}</td>
-        </tr>`;
+    const tbody = document.getElementById(`mods_${product.name.replace(/\s+/g, '_')}`);
+    modulesInProduct.forEach(mod => {
+      const isSelected = selectedModules.has(mod.name);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${mod.name}</td>
+        <td>${mod.count}</td>
+        <td><button style="padding:2px 8px;border:none;border-radius:12px;background:${isSelected?'#e6f4ea':'#fce8e6'};color:${isSelected?'#137333':'#c5221f'};cursor:pointer;" 
+          onclick="toggleModule('${mod.name}')">
+          ${isSelected ? 'Y' : 'N'}
+        </button></td>`;
+      tbody.appendChild(row);
     });
+  });
+}
 
-    div.innerHTML = `
-      <div class="section-header">${title}</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Task</th>
-            <th>Task Details</th>
-            <th>Non-Prod Hrs</th>
-            <th>Prod Hrs</th>
-            <th>Qty</th>
-            <th>Total Hrs</th>
-            <th>CSUs</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-          <tr class="totals">
-            <td colspan="2"><strong>Section Total</strong></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>`;
-    container.appendChild(div);
+function toggleModule(moduleName) {
+  if (selectedModules.has(moduleName)) {
+    selectedModules.delete(moduleName);
+  } else {
+    selectedModules.add(moduleName);
   }
+  renderSelector();
+  rebuildProductConfig();
+  renderEstimation();
+}
 
-  function downloadAll() {
-    const wb = XLSX.utils.book_new();
+function updatePersonalization(productName, value) {
+  personalizationCounts[productName] = parseInt(value) || 0;
+  rebuildProductConfig();
+  renderEstimation();
+}
 
-    // Summary
-    const selectedProducts = new Set();
-    selectedModules.forEach(name => {
-      const mod = MODULES.find(m => m.name === name);
-      if (mod) selectedProducts.add(mod.product);
+function updateSummary() {
+  document.getElementById('moduleCount').value = selectedModules.size;
+  const selectedProducts = new Set();
+  selectedModules.forEach(name => {
+    const mod = MODULES.find(m => m.name === name);
+    if (mod) selectedProducts.add(mod.product);
+  });
+  document.getElementById('productCount').value = selectedProducts.size;
+}
+
+/* =========================
+   REBUILD PRODUCT CONFIG
+========================= */
+
+function rebuildProductConfig(){
+  CONFIG.products = {};
+
+  const selectedProducts = new Set();
+  selectedModules.forEach(name => {
+    const mod = MODULES.find(m => m.name === name);
+    if (mod) selectedProducts.add(mod.product);
+  });
+
+  selectedProducts.forEach(productName => {
+    const product = PRODUCTS.find(p => p.name === productName);
+    let featureCount = 0;
+    MODULES.filter(m => m.product === productName).forEach(m => {
+      if (selectedModules.has(m.name)) featureCount += m.count;
     });
-    const summary = [
-      ["Customer Name", document.getElementById('customerName').value],
-      ["Modules Selected", selectedModules.size],
-      ["Products Selected", selectedProducts.size]
+    const persCount = personalizationCounts[productName] || 0;
+
+    CONFIG.products[productName] = [
+      // Enablement
+      { name: "Features Enablement", detail: "Enabling Feature by Feature by setup , Profile option , Opt-in Enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
+      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled , verifed all features enablment.", nonProd: 0.1, prod: 0.1, qty: featureCount },
+      { name: "Verification of Enabled Features at UI", detail: "Verification of enabled functionality by going into respective UI once all the features a enabled.", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
+      { name: "Unit Testing w/o Personlization", detail: "Testing of Std Process by creating transaction.", nonProd: 24 * product.weight, prod: 0, qty: 1 },
+      { name: "Comparision between Classic vs Redwood - W.O", detail: "Column by Column comparision between Classic and Redwood to ensure everything is covered.", nonProd: 16 * product.weight, prod: 0, qty: 1 },
+      // Personalization
+      { name: "Enablement of Personlization and Production Migration", detail: "This is per Personlization time / Env", nonProd: 2, prod: 1, qty: persCount },
+      { name: "Testing After Personlizations", detail: "This can Vary with no.of Features and business process and Complexity", nonProd: 40, prod: 0, qty: persCount > 0 ? 1 : 0 }
     ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), "Summary");
+  });
 
-    // Estimation
-    const estData = [["Section","Task","Task Details","Non-Prod Hrs","Prod Hrs","Qty","Total Hrs","CSUs"]];
-    
-    // Overview
-    OVERVIEW_TASKS.forEach(t => {
-      const total = (t.nonProd + t.prod) * t.qty;
-      estData.push(["Overview", t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
-    });
+  // Update Hypercare
+  let totalPers = 0;
+  selectedProducts.forEach(p => { totalPers += personalizationCounts[p] || 0; });
+  CONFIG.hypercare[0].qty = totalPers;
+  CONFIG.hypercare[1].qty = Math.max(3, Math.ceil(totalPers * 0.2));
+}
 
-    // Per-Product
-    selectedProducts.forEach(productName => {
-      const product = PRODUCTS.find(p => p.name === productName);
-      let featureCount = 0;
-      MODULES.filter(m => m.product === productName).forEach(m => {
-        if (selectedModules.has(m.name)) featureCount += m.count;
-      });
-      const tasks = [
-        { name: "Features Enablement", detail: "Enabling Feature by Feature via setup, Profile option, Opt-in", nonProd: 0.1, prod: 0.1, qty: featureCount },
-        { name: "Config Verification", detail: "Verify all features enabled at config level", nonProd: 0.1, prod: 0.1, qty: featureCount },
-        { name: "UI Verification", detail: "UI validation post-enablement", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
-        { name: "Unit Testing w/o Personalization", detail: "Testing of Standard Process", nonProd: 24 * product.weight, prod: 0, qty: 1 },
-        { name: "Classic vs Redwood Comparison", detail: "Column-by-column comparison", nonProd: 16 * product.weight, prod: 0, qty: 1 }
-      ];
-      tasks.forEach(t => {
-        const total = (t.nonProd + t.prod) * t.qty;
-        estData.push([`Enablement: ${productName}`, t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
-      });
-    });
+/* =========================
+   ESTIMATION VIEW
+========================= */
 
-    // Personalization
-    PERSONALIZATION_TASKS.forEach(t => {
-      const total = (t.nonProd + t.prod) * t.qty;
-      estData.push(["Personalization", t.name, t.detail, t.nonProd, t.prod, t.qty, total, total/2]);
-    });
+function renderEstimation(){
+  const c=document.getElementById("formContainer");
+  c.innerHTML="";
+  renderSection(c,"Overview",CONFIG.overview,false);
 
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(estData), "Estimation");
+  // Per-Product sections
+  Object.keys(CONFIG.products).forEach(productName => {
+    renderSection(c,`Product: ${productName}`, CONFIG.products[productName], false);
+  });
 
-    // Modules
-    const modData = [["Module Name", "Product", "Feature Count", "Selected"]];
-    MODULES.forEach(m => modData.push([m.name, m.product, m.count, selectedModules.has(m.name) ? "Y" : "N"]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(modData), "Modules");
+  // Hypercare
+  renderSection(c,"UAT and Migration , Hypercare",CONFIG.hypercare,false);
+}
 
-    // Products
-    const prodData = [["Product", "Weightage", "Selected"]];
-    PRODUCTS.forEach(p => {
-      const isSelected = MODULES.some(m => m.product === p.name && selectedModules.has(m.name));
-      prodData.push([p.name, p.weight, isSelected ? "Y" : "N"]);
-    });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prodData), "Products");
+// Initial render
+renderSelector();
+rebuildProductConfig();
+renderEstimation();
 
-    XLSX.writeFile(wb, "Redwood_Adoption_Estimation.xlsx");
+/* =========================
+   ADMIN MODE
+========================= */
+
+function checkAdminPassword(){
+  if(prompt("Enter admin password")==="admin123"){
+    activateTab("admin");
+    renderAdmin();
+  } else {
+    alert("Incorrect password");
   }
+}
+
+function renderAdmin(){
+  const c=document.getElementById("adminContainer");
+  c.innerHTML="<h3>Admin Mode (Editable)</h3>";
+  renderSection(c,"Overview",CONFIG.overview,true);
+
+  Object.keys(CONFIG.products).forEach(productName => {
+    renderSection(c,`Product: ${productName}`, CONFIG.products[productName], true);
+  });
+
+  renderSection(c,"UAT and Migration , Hypercare",CONFIG.hypercare,true);
+}
+
+function updateTask(section,idx,field,value){
+  value = field==='qty' ? (parseInt(value)||0) : (parseFloat(value)||0);
+  if(section==="Overview") {
+    CONFIG.overview[idx][field]=value;
+  } else if(section==="UAT and Migration , Hypercare") {
+    CONFIG.hypercare[idx][field]=value;
+  } else if(section.startsWith("Product: ")) {
+    const productName = section.replace("Product: ", "");
+    CONFIG.products[productName][idx][field] = value;
+  }
+  renderEstimation();
+}
+
+/* =========================
+   EXPORT
+========================= */
+
+function downloadAll(){
+  const wb=XLSX.utils.book_new();
+  const rows=[["Section","Task","Details","Non-Prod","Prod","Qty","Total","CSU"]];
+
+  // Overview
+  CONFIG.overview.forEach(t=>{
+    const tot=(t.nonProd+t.prod)*t.qty;
+    rows.push(["Overview",t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
+  });
+
+  // Products
+  Object.entries(CONFIG.products).forEach(([prodName, tasks])=>{
+    tasks.forEach(t=>{
+      const tot=(t.nonProd+t.prod)*t.qty;
+      rows.push([`Product: ${prodName}`,t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
+    });
+  });
+
+  // Hypercare
+  CONFIG.hypercare.forEach(t=>{
+    const tot=(t.nonProd+t.prod)*t.qty;
+    rows.push(["Hypercare",t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
+  });
+
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),"Estimation");
+  XLSX.writeFile(wb,"Redwood_Adoption_Estimation_Final.xlsx");
+}
 </script>
+
 </body>
 </html>
-
 
