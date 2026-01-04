@@ -3,25 +3,83 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Redwood Adoption Estimator (Final)</title>
+<title>Redwood Adoption Estimator</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 :root {
-  --overview-bg:#e3f2fd;
-  --product-bg:#fff3e0;
-  --hypercare-bg:#f3e5f5;
-  --grand-bg:#fce4ec;
+  --primary:#1a73e8;
+  --success:#4caf50;
+  --warning:#ff9800;
+  --danger:#f44336;
+  --light:#f5f7fa;
+  --dark:#202124;
 }
 body {
   font-family:'Segoe UI',Tahoma,sans-serif;
-  background:#f5f7fa;
+  background:var(--light);
   margin:0;
 }
 .header {
-  background:#1a73e8;
+  background:var(--primary);
   color:#fff;
   padding:16px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.header h2 { margin:0; }
+.user-badge {
+  background:rgba(255,255,255,0.2);
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:14px;
+}
+.login-container {
+  max-width:400px;
+  margin:100px auto;
+  padding:32px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+.login-container h3 {
+  margin-top:0;
+  color:var(--primary);
+}
+.login-container input {
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:1px solid #ddd;
+  border-radius:6px;
+  box-sizing:border-box;
+}
+.login-container button {
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:16px;
+  font-weight:600;
+}
+.btn-user {
+  background:var(--success);
+  color:#fff;
+}
+.btn-admin {
+  background:var(--primary);
+  color:#fff;
+}
+.btn-logout {
+  background:var(--danger);
+  color:#fff;
+  padding:8px 16px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
 }
 .dashboard {
   display:grid;
@@ -30,37 +88,46 @@ body {
   padding:16px;
   background:#fff;
 }
+.dashboard input {
+  width:100%;
+  padding:8px;
+  border:1px solid #ddd;
+  border-radius:4px;
+  box-sizing:border-box;
+}
 .tabs {
   display:flex;
   background:#f1f3f5;
   padding:0 20px;
   border-bottom:1px solid #ddd;
+  flex-wrap:wrap;
 }
 .tab {
   padding:12px 20px;
   cursor:pointer;
   font-weight:600;
+  user-select:none;
 }
 .tab.active {
-  color:#1a73e8;
-  border-bottom:3px solid #1a73e8;
+  color:var(--primary);
+  border-bottom:3px solid var(--primary);
 }
 .tab-content {
   display:none;
   padding:20px;
 }
 .tab-content.active { display:block; }
-
 .section {
   margin-bottom:24px;
   border-radius:8px;
   overflow:hidden;
   box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  background:#fff;
 }
 .section-header {
-  padding:10px 16px;
+  padding:12px 16px;
   font-weight:bold;
-  background:rgba(255,255,255,0.9);
+  background:#f5f9ff;
   border-bottom:1px solid #ccc;
 }
 table {
@@ -72,73 +139,160 @@ th,td {
   border:1px solid #ddd;
   text-align:center;
 }
-th { background:#f5f9ff; }
-td.task-name { text-align:left; font-weight:bold; }
-td.task-details { text-align:left; }
+th { background:#f5f9ff; font-weight:600; }
+td.task-name { text-align:left; font-weight:500; }
+td.task-details { text-align:left; font-size:13px; color:#555; }
 input[type="number"] {
   width:80px;
   padding:4px;
   text-align:center;
+  border:1px solid #ddd;
+  border-radius:4px;
 }
 button.download {
   margin:24px auto;
   display:block;
   padding:12px 28px;
-  background:#4caf50;
+  background:var(--success);
   color:#fff;
   border:none;
   border-radius:6px;
   font-size:16px;
   cursor:pointer;
+  font-weight:600;
+}
+button.download:hover {
+  background:#45a049;
+}
+.admin-controls {
+  background:#fff3e0;
+  padding:20px;
+  margin-bottom:20px;
+  border-radius:8px;
+  border:2px dashed var(--warning);
+}
+.admin-controls h3 {
+  margin-top:0;
+  color:var(--warning);
+}
+.file-input-wrapper {
+  margin:16px 0;
+}
+.file-input-wrapper input[type="file"] {
+  padding:8px;
+  border:1px solid #ddd;
+  border-radius:4px;
+  width:100%;
+  box-sizing:border-box;
+}
+.btn-upload {
+  background:var(--warning);
+  color:#fff;
+  padding:10px 20px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  margin-top:10px;
+}
+.module-toggle-btn {
+  padding:4px 12px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:600;
+  transition:all 0.2s;
+}
+.module-toggle-btn.selected {
+  background:#e6f4ea;
+  color:#137333;
+}
+.module-toggle-btn.unselected {
+  background:#fce8e6;
+  color:#c5221f;
+}
+.hidden { display:none; }
+.error-message {
+  color:var(--danger);
+  font-size:14px;
+  margin:10px 0;
+  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h2>Redwood Adoption Estimator</h2>
-</div>
-
-<div class="dashboard">
-  <div>
-    <label>Customer Name</label>
-    <input id="customerName" value="Global Enterprises"/>
-  </div>
-  <div>
-    <label>Modules Selected</label>
-    <input id="moduleCount" readonly/>
-  </div>
-  <div>
-    <label>Products Selected</label>
-    <input id="productCount" readonly/>
+<div id="loginScreen" class="login-container">
+  <h3>Redwood Adoption Estimator</h3>
+  <p>Choose your access level:</p>
+  <button class="btn-user" onclick="loginAsUser()">Continue as User</button>
+  <button class="btn-admin" onclick="showAdminLogin()">Admin Login</button>
+  
+  <div id="adminLoginForm" class="hidden" style="margin-top:20px;">
+    <input type="password" id="adminPassword" placeholder="Enter admin password" onkeypress="if(event.key==='Enter')loginAsAdmin()">
+    <button class="btn-admin" onclick="loginAsAdmin()">Login as Admin</button>
+    <div id="loginError" class="error-message hidden">Incorrect password. Please try again.</div>
   </div>
 </div>
 
-<div class="tabs">
-  <div class="tab active" data-tab="selector">1. Selector</div>
-  <div class="tab" data-tab="estimation">2. Estimation</div>
-  <div class="tab" onclick="checkAdminPassword()">3. 🔒 Admin</div>
-</div>
+<div id="appScreen" class="hidden">
+  <div class="header">
+    <h2>Redwood Adoption Estimator</h2>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <span class="user-badge" id="userBadge"></span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-<div id="selector" class="tab-content active">
-  <div id="productContainer"></div>
-</div>
+  <div class="dashboard">
+    <div>
+      <label>Customer Name</label>
+      <input id="customerName" value="Global Enterprises"/>
+    </div>
+    <div>
+      <label>Modules Selected</label>
+      <input id="moduleCount" readonly/>
+    </div>
+    <div>
+      <label>Products Selected</label>
+      <input id="productCount" readonly/>
+    </div>
+  </div>
 
-<div id="estimation" class="tab-content">
-  <div id="formContainer"></div>
-  <button class="download" onclick="downloadAll()">📥 Download Full Estimation</button>
-</div>
+  <div class="tabs" id="tabsContainer"></div>
 
-<div id="admin" class="tab-content">
-  <div id="adminContainer"></div>
-  <button class="download" onclick="downloadAll()">📥 Download Full Estimation</button>
+  <div id="selector" class="tab-content">
+    <div id="productContainer"></div>
+  </div>
+
+  <div id="estimation" class="tab-content">
+    <div id="formContainer"></div>
+    <button class="download" onclick="downloadEstimation()">📥 Download Estimation Report</button>
+  </div>
+
+  <div id="admin" class="tab-content">
+    <div class="admin-controls">
+      <h3>⚙️ Configuration Management</h3>
+      <p><strong>Upload Configuration:</strong> Upload an Excel file to update all estimation parameters.</p>
+      <div class="file-input-wrapper">
+        <input type="file" id="configFile" accept=".xlsx,.xls">
+        <button class="btn-upload" onclick="uploadConfig()">Upload & Apply</button>
+      </div>
+      <button class="download" onclick="downloadTemplate()" style="display:inline-block;margin:10px 0;">📋 Download Current Config as Template</button>
+    </div>
+    
+    <h3>Current Configuration (Editable)</h3>
+    <div id="adminContainer"></div>
+    <button class="download" onclick="downloadEstimation()">📥 Download Estimation Report</button>
+  </div>
 </div>
 
 <script>
-/* =========================
-   MASTER DATA
-========================= */
+const ADMIN_PASSWORD = "admin123";
+let currentUser = null;
+let personalizationCounts = {};
+let selectedModules = new Set();
 
 const PRODUCTS = [
   { name: "SCM Common Components", weight: 0.5 },
@@ -215,16 +369,9 @@ const MODULES = [
   { name: "Supply Planning", count: 57, product: "Supply Chain Planning" }
 ];
 
-/* =========================
-   SINGLE SOURCE OF TRUTH
-========================= */
-
-let personalizationCounts = {};
-let selectedModules = new Set();
-
 const DEFAULT_OVERVIEW = [
-  { name:"Discussion", detail:"Muliple Discussions with Customer educating on Redwood Process", nonProd:4, prod:4, qty:1 },
-  { name:"Documentation", detail:"CWB's , Impact Assessment Document , Adoption Document", nonProd:8, prod:8, qty:1 },
+  { name:"Discussion", detail:"Multiple Discussions with Customer educating on Redwood Process", nonProd:4, prod:4, qty:1 },
+  { name:"Documentation", detail:"CWB's, Impact Assessment Document, Adoption Document", nonProd:8, prod:8, qty:1 },
   { name:"Demo / Review", detail:"Walk Through of Feature Before and After Adoption", nonProd:4, prod:4, qty:1 }
 ];
 
@@ -234,30 +381,93 @@ const DEFAULT_HYPERCARE = [
 ];
 
 let CONFIG = {
-  overview: structuredClone(DEFAULT_OVERVIEW),
-  products: {}, // will hold per-product task lists
-  hypercare: structuredClone(DEFAULT_HYPERCARE)
+  overview: JSON.parse(JSON.stringify(DEFAULT_OVERVIEW)),
+  products: {},
+  hypercare: JSON.parse(JSON.stringify(DEFAULT_HYPERCARE))
 };
 
-/* =========================
-   TAB HANDLING
-========================= */
+function showAdminLogin() {
+  document.getElementById('adminLoginForm').classList.remove('hidden');
+}
 
-document.querySelectorAll('.tab[data-tab]').forEach(t=>{
-  t.onclick=()=>activateTab(t.dataset.tab);
-});
+function loginAsUser() {
+  currentUser = 'user';
+  initializeApp();
+}
+
+function loginAsAdmin() {
+  const pwd = document.getElementById('adminPassword').value;
+  const errorDiv = document.getElementById('loginError');
+  
+  if (pwd === ADMIN_PASSWORD) {
+    currentUser = 'admin';
+    errorDiv.classList.add('hidden');
+    initializeApp();
+  } else {
+    errorDiv.classList.remove('hidden');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('adminLoginForm').classList.add('hidden');
+  document.getElementById('loginError').classList.add('hidden');
+}
+
+function initializeApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  
+  if (currentUser === 'admin') {
+    document.getElementById('userBadge').textContent = '👤 Admin';
+    renderTabs(['selector', 'estimation', 'admin']);
+  } else {
+    document.getElementById('userBadge').textContent = '👤 User';
+    renderTabs(['selector', 'estimation']);
+  }
+  
+  renderSelector();
+  rebuildProductConfig();
+  renderEstimation();
+  activateTab('selector');
+}
+
+function renderTabs(tabs) {
+  const container = document.getElementById('tabsContainer');
+  container.innerHTML = '';
+  
+  const tabLabels = {
+    selector: '1. Module Selection',
+    estimation: '2. Estimation Report',
+    admin: '3. 🔒 Admin Configuration'
+  };
+  
+  tabs.forEach(tabId => {
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+    tab.textContent = tabLabels[tabId];
+    tab.onclick = () => activateTab(tabId);
+    container.appendChild(tab);
+  });
+}
 
 function activateTab(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  if(document.querySelector(`.tab[data-tab="${id}"]`))
-    document.querySelector(`.tab[data-tab="${id}"]`).classList.add('active');
+  
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const idx = tabs.findIndex(t => t.textContent.includes(id === 'selector' ? 'Module' : id === 'estimation' ? 'Estimation' : 'Admin'));
+  if(idx >= 0) tabs[idx].classList.add('active');
+  
   document.getElementById(id).classList.add('active');
+  
+  if (id === 'admin' && currentUser === 'admin') {
+    renderAdmin();
+  }
 }
-
-/* =========================
-   RENDERING CORE
-========================= */
 
 function renderSection(parent,title,tasks,editable){
   if(tasks.length===0) return;
@@ -268,13 +478,14 @@ function renderSection(parent,title,tasks,editable){
   let rows="";
   tasks.forEach((t,i)=>{
     const total=(t.nonProd+t.prod)*t.qty;
+    const sectionKey = title.replace(/[^a-zA-Z0-9]/g,'_');
     rows+=`
     <tr>
       <td class="task-name">${t.name}</td>
       <td class="task-details">${t.detail}</td>
-      <td>${editable?`<input type="number" step="0.1" value="${t.nonProd}" oninput="updateTask('${title}',${i},'nonProd',this.value)">`:t.nonProd.toFixed(1)}</td>
-      <td>${editable?`<input type="number" step="0.1" value="${t.prod}" oninput="updateTask('${title}',${i},'prod',this.value)">`:t.prod.toFixed(1)}</td>
-      <td>${editable?`<input type="number" value="${t.qty}" oninput="updateTask('${title}',${i},'qty',this.value)">`:t.qty}</td>
+      <td>${editable?`<input type="number" step="0.1" value="${t.nonProd}" oninput="updateTask('${sectionKey}',${i},'nonProd',this.value)">`:t.nonProd.toFixed(1)}</td>
+      <td>${editable?`<input type="number" step="0.1" value="${t.prod}" oninput="updateTask('${sectionKey}',${i},'prod',this.value)">`:t.prod.toFixed(1)}</td>
+      <td>${editable?`<input type="number" value="${t.qty}" oninput="updateTask('${sectionKey}',${i},'qty',this.value)">`:t.qty}</td>
       <td>${total.toFixed(1)}</td>
       <td>${(total/2).toFixed(1)}</td>
     </tr>`;
@@ -298,10 +509,6 @@ function renderSection(parent,title,tasks,editable){
   parent.appendChild(sec);
 }
 
-/* =========================
-   MODULE SELECTION
-========================= */
-
 function renderSelector(){
   const container = document.getElementById('productContainer');
   container.innerHTML = '';
@@ -312,39 +519,38 @@ function renderSelector(){
     productDiv.className = 'section';
 
     const modulesInProduct = MODULES.filter(m => m.product === product.name);
-    let productModuleCount = 0;
-    modulesInProduct.forEach(m => {
-      if (selectedModules.has(m.name)) productModuleCount++;
-    });
-
+    
     if (!personalizationCounts[product.name]) {
       personalizationCounts[product.name] = 5;
     }
 
+    const safeId = product.name.replace(/\s+/g, '_').replace(/&/g,'and');
+    
     productDiv.innerHTML = `
       <div class="section-header">${product.name} (Weight: ${product.weight})</div>
-      <div style="padding:0 16px 10px;">
-        <label>Personalizations: 
+      <div style="padding:12px 16px;background:#f9f9f9;">
+        <label style="font-weight:600;">Personalizations: 
           <input type="number" min="0" value="${personalizationCounts[product.name]}" 
-            oninput="updatePersonalization('${product.name}', this.value)">
+            style="width:100px;margin-left:8px;"
+            onchange="updatePersonalization('${product.name}', this.value)">
         </label>
       </div>
       <table>
-        <thead><tr><th>Module</th><th>Features</th><th>?</th></tr></thead>
-        <tbody id="mods_${product.name.replace(/\s+/g, '_')}"></tbody>
+        <thead><tr><th style="width:50%">Module</th><th>Features</th><th>Selected</th></tr></thead>
+        <tbody id="mods_${safeId}"></tbody>
       </table>`;
     container.appendChild(productDiv);
 
-    const tbody = document.getElementById(`mods_${product.name.replace(/\s+/g, '_')}`);
+    const tbody = document.getElementById(`mods_${safeId}`);
     modulesInProduct.forEach(mod => {
       const isSelected = selectedModules.has(mod.name);
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${mod.name}</td>
+        <td style="text-align:left;">${mod.name}</td>
         <td>${mod.count}</td>
-        <td><button style="padding:2px 8px;border:none;border-radius:12px;background:${isSelected?'#e6f4ea':'#fce8e6'};color:${isSelected?'#137333':'#c5221f'};cursor:pointer;" 
-          onclick="toggleModule('${mod.name}')">
-          ${isSelected ? 'Y' : 'N'}
+        <td><button class="module-toggle-btn ${isSelected?'selected':'unselected'}" 
+          onclick="toggleModule('${mod.name.replace(/'/g,"\\'")}')">
+          ${isSelected ? '✓ Yes' : '✗ No'}
         </button></td>`;
       tbody.appendChild(row);
     });
@@ -378,10 +584,6 @@ function updateSummary() {
   document.getElementById('productCount').value = selectedProducts.size;
 }
 
-/* =========================
-   REBUILD PRODUCT CONFIG
-========================= */
-
 function rebuildProductConfig(){
   CONFIG.products = {};
 
@@ -400,101 +602,77 @@ function rebuildProductConfig(){
     const persCount = personalizationCounts[productName] || 0;
 
     CONFIG.products[productName] = [
-      // Enablement
-      { name: "Features Enablement", detail: "Enabling Feature by Feature by setup , Profile option , Opt-in Enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
-      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled , verifed all features enablment.", nonProd: 0.1, prod: 0.1, qty: featureCount },
-      { name: "Verification of Enabled Features at UI", detail: "Verification of enabled functionality by going into respective UI once all the features a enabled.", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
-      { name: "Unit Testing w/o Personlization", detail: "Testing of Std Process by creating transaction.", nonProd: 24 * product.weight, prod: 0, qty: 1 },
-      { name: "Comparision between Classic vs Redwood - W.O", detail: "Column by Column comparision between Classic and Redwood to ensure everything is covered.", nonProd: 16 * product.weight, prod: 0, qty: 1 },
-      // Personalization
-      { name: "Enablement of Personlization and Production Migration", detail: "This is per Personlization time / Env", nonProd: 2, prod: 1, qty: persCount },
-      { name: "Testing After Personlizations", detail: "This can Vary with no.of Features and business process and Complexity", nonProd: 40, prod: 0, qty: persCount > 0 ? 1 : 0 }
+      { name: "Features Enablement", detail: "Enabling Feature by Feature by setup, Profile option, Opt-in Enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
+      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled, verified all features enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
+      { name: "Verification of Enabled Features at UI", detail: "Verification of enabled functionality by going into respective UI once all the features are enabled.", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
+      { name: "Unit Testing w/o Personalization", detail: "Testing of Std Process by creating transaction.", nonProd: 24 * product.weight, prod: 0, qty: 1 },
+      { name: "Comparison between Classic vs Redwood", detail: "Column by Column comparison between Classic and Redwood to ensure everything is covered.", nonProd: 16 * product.weight, prod: 0, qty: 1 },
+      { name: "Enablement of Personalization and Production Migration", detail: "This is per Personalization time / Env", nonProd: 2, prod: 1, qty: persCount },
+      { name: "Testing After Personalizations", detail: "This can Vary with no.of Features and business process and Complexity", nonProd: 40, prod: 0, qty: persCount > 0 ? 1 : 0 }
     ];
   });
 
-  // Update Hypercare
   let totalPers = 0;
   selectedProducts.forEach(p => { totalPers += personalizationCounts[p] || 0; });
   CONFIG.hypercare[0].qty = totalPers;
   CONFIG.hypercare[1].qty = Math.max(3, Math.ceil(totalPers * 0.2));
 }
 
-/* =========================
-   ESTIMATION VIEW
-========================= */
-
 function renderEstimation(){
   const c=document.getElementById("formContainer");
   c.innerHTML="";
   renderSection(c,"Overview",CONFIG.overview,false);
 
-  // Per-Product sections
   Object.keys(CONFIG.products).forEach(productName => {
     renderSection(c,`Product: ${productName}`, CONFIG.products[productName], false);
   });
 
-  // Hypercare
-  renderSection(c,"UAT and Migration , Hypercare",CONFIG.hypercare,false);
-}
-
-// Initial render
-renderSelector();
-rebuildProductConfig();
-renderEstimation();
-
-/* =========================
-   ADMIN MODE
-========================= */
-
-function checkAdminPassword(){
-  if(prompt("Enter admin password")==="admin123"){
-    activateTab("admin");
-    renderAdmin();
-  } else {
-    alert("Incorrect password");
-  }
+  renderSection(c,"UAT and Migration, Hypercare",CONFIG.hypercare,false);
 }
 
 function renderAdmin(){
   const c=document.getElementById("adminContainer");
-  c.innerHTML="<h3>Admin Mode (Editable)</h3>";
+  c.innerHTML="";
   renderSection(c,"Overview",CONFIG.overview,true);
 
   Object.keys(CONFIG.products).forEach(productName => {
     renderSection(c,`Product: ${productName}`, CONFIG.products[productName], true);
   });
 
-  renderSection(c,"UAT and Migration , Hypercare",CONFIG.hypercare,true);
+  renderSection(c,"UAT and Migration, Hypercare",CONFIG.hypercare,true);
 }
 
-function updateTask(section,idx,field,value){
+function updateTask(sectionKey,idx,field,value){
   value = field==='qty' ? (parseInt(value)||0) : (parseFloat(value)||0);
-  if(section==="Overview") {
+  
+  if(sectionKey==="Overview") {
     CONFIG.overview[idx][field]=value;
-  } else if(section==="UAT and Migration , Hypercare") {
+  } else if(sectionKey.includes("Hypercare")) {
     CONFIG.hypercare[idx][field]=value;
-  } else if(section.startsWith("Product: ")) {
-    const productName = section.replace("Product: ", "");
-    CONFIG.products[productName][idx][field] = value;
+  } else if(sectionKey.startsWith("Product_")) {
+    const productName = sectionKey.replace("Product_", "").replace(/_/g, " ");
+    const matchingProduct = Object.keys(CONFIG.products).find(p => 
+      p.replace(/[^a-zA-Z0-9]/g,'_') === productName.replace(/[^a-zA-Z0-9]/g,'_')
+    );
+    if(matchingProduct && CONFIG.products[matchingProduct]) {
+      CONFIG.products[matchingProduct][idx][field] = value;
+    }
   }
+  
   renderEstimation();
+  if(currentUser === 'admin') renderAdmin();
 }
 
-/* =========================
-   EXPORT
-========================= */
-
-function downloadAll(){
+function downloadEstimation(){
+  const customerName = document.getElementById('customerName').value || 'Customer';
   const wb=XLSX.utils.book_new();
   const rows=[["Section","Task","Details","Non-Prod","Prod","Qty","Total","CSU"]];
 
-  // Overview
   CONFIG.overview.forEach(t=>{
     const tot=(t.nonProd+t.prod)*t.qty;
     rows.push(["Overview",t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
   });
 
-  // Products
   Object.entries(CONFIG.products).forEach(([prodName, tasks])=>{
     tasks.forEach(t=>{
       const tot=(t.nonProd+t.prod)*t.qty;
@@ -502,17 +680,104 @@ function downloadAll(){
     });
   });
 
-  // Hypercare
   CONFIG.hypercare.forEach(t=>{
     const tot=(t.nonProd+t.prod)*t.qty;
     rows.push(["Hypercare",t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
   });
 
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),"Estimation");
-  XLSX.writeFile(wb,"Redwood_Adoption_Estimation_Final.xlsx");
+  XLSX.writeFile(wb,`${customerName}_Redwood_Estimation.xlsx`);
+}
+
+function downloadTemplate(){
+  const wb=XLSX.utils.book_new();
+  const rows=[["Section","Task","Details","Non-Prod","Prod","Qty"]];
+
+  CONFIG.overview.forEach(t=>{
+    rows.push(["Overview",t.name,t.detail,t.nonProd,t.prod,t.qty]);
+  });
+
+  Object.entries(CONFIG.products).forEach(([prodName, tasks])=>{
+    tasks.forEach(t=>{
+      rows.push([`Product: ${prodName}`,t.name,t.detail,t.nonProd,t.prod,t.qty]);
+    });
+  });
+
+  CONFIG.hypercare.forEach(t=>{
+    rows.push(["Hypercare",t.name,t.detail,t.nonProd,t.prod,t.qty]);
+  });
+
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),"Config");
+  XLSX.writeFile(wb,"Redwood_Config_Template.xlsx");
+}
+
+function uploadConfig(){
+  const file = document.getElementById('configFile').files[0];
+  if (!file) {
+    alert('Please select a file first');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet);
+      
+      // Reset configuration to default values first
+      CONFIG.overview = JSON.parse(JSON.stringify(DEFAULT_OVERVIEW));
+      CONFIG.hypercare = JSON.parse(JSON.stringify(DEFAULT_HYPERCARE));
+      
+      json.forEach(row => {
+        const section = row.Section;
+        const taskName = row.Task;
+        const nonProd = parseFloat(row['Non-Prod']) || 0;
+        const prod = parseFloat(row.Prod) || 0;
+        const qty = parseInt(row.Qty) || 0;
+        const detail = row.Details || '';
+        
+        if(section === 'Overview') {
+          const task = CONFIG.overview.find(t => t.name === taskName);
+          if(task) {
+            task.nonProd = nonProd;
+            task.prod = prod;
+            task.qty = qty;
+            task.detail = detail;
+          }
+        } else if(section === 'Hypercare') {
+          const task = CONFIG.hypercare.find(t => t.name === taskName);
+          if(task) {
+            task.nonProd = nonProd;
+            task.prod = prod;
+            task.qty = qty;
+            task.detail = detail;
+          }
+        } else if(section.startsWith('Product: ')) {
+          const productName = section.replace('Product: ', '');
+          if(CONFIG.products[productName]) {
+            const task = CONFIG.products[productName].find(t => t.name === taskName);
+            if(task) {
+              task.nonProd = nonProd;
+              task.prod = prod;
+              task.qty = qty;
+              task.detail = detail;
+            }
+          }
+        }
+      });
+      
+      renderEstimation();
+      renderAdmin();
+      alert('Configuration uploaded and applied successfully!');
+    } catch(err) {
+      alert('Error reading file: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 </script>
 
 </body>
 </html>
-
