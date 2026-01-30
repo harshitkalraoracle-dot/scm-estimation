@@ -519,7 +519,7 @@ function renderSection(parent,title,tasks,editable){
         <th>Non-Prod</th>
         <th>Prod</th>
         <th>Qty</th>
-        <th>Total</th>
+        <th>Total Man Hours</th>
         <th>CSU</th>
       </tr>
     </thead>
@@ -694,7 +694,7 @@ function downloadEstimation(){
   ws_data.push([]);
   
   // Column headers
-  ws_data.push(['Section', 'Task', 'Details', 'Non-Prod', 'Prod', 'Qty', 'Total', 'CSU']);
+  ws_data.push(['Section', 'Task', 'Details', 'Non-Prod', 'Prod', 'Qty', 'Total Man Hours', 'CSU']);
   
   // Overview section
   let sectionTotal = 0;
@@ -960,10 +960,7 @@ function uploadConfig(){
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet);
       
-      // Reset configuration to default values first
-      CONFIG.overview = JSON.parse(JSON.stringify(DEFAULT_OVERVIEW));
-      CONFIG.hypercare = JSON.parse(JSON.stringify(DEFAULT_HYPERCARE));
-      
+      // Don't reset - just update the existing configuration
       json.forEach(row => {
         // Skip empty rows or rows without section
         if (!row.Section || !row.Task) return;
@@ -1000,11 +997,19 @@ function uploadConfig(){
               task.prod = prod;
               task.qty = qty;
               if(detail) task.detail = detail;
+              
+              // Extract personalization count from the "Enablement of Personalization" task
+              if(taskName === 'Enablement of Personalization and Production Migration') {
+                personalizationCounts[productName] = qty;
+              }
             }
           }
         }
       });
       
+      // Re-render selector to show updated personalization counts
+      renderSelector();
+      // Re-render everything to show the updated values
       renderEstimation();
       if(currentUser === 'admin') renderAdmin();
       alert('Configuration uploaded and applied successfully!');
