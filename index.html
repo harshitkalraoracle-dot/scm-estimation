@@ -965,12 +965,15 @@ function uploadConfig(){
       CONFIG.hypercare = JSON.parse(JSON.stringify(DEFAULT_HYPERCARE));
       
       json.forEach(row => {
-        const section = row.Section;
-        const taskName = row.Task;
+        // Skip empty rows or rows without section
+        if (!row.Section || !row.Task) return;
+        
+        const section = String(row.Section).trim();
+        const taskName = String(row.Task).trim();
         const nonProd = parseFloat(row['Non-Prod']) || 0;
         const prod = parseFloat(row.Prod) || 0;
         const qty = parseInt(row.Qty) || 0;
-        const detail = row.Details || '';
+        const detail = row.Details ? String(row.Details) : '';
         
         if(section === 'Overview') {
           const task = CONFIG.overview.find(t => t.name === taskName);
@@ -978,35 +981,40 @@ function uploadConfig(){
             task.nonProd = nonProd;
             task.prod = prod;
             task.qty = qty;
-            task.detail = detail;
+            if(detail) task.detail = detail;
           }
-        } else if(section === 'UAT and Migration, Hypercare') {
+        } else if(section === 'UAT and Migration, Hypercare' || section === 'Hypercare') {
           const task = CONFIG.hypercare.find(t => t.name === taskName);
           if(task) {
             task.nonProd = nonProd;
             task.prod = prod;
             task.qty = qty;
-            task.detail = detail;
+            if(detail) task.detail = detail;
           }
         } else if(section.startsWith('Product: ')) {
-          const productName = section.replace('Product: ', '');
+          const productName = section.replace('Product: ', '').trim();
           if(CONFIG.products[productName]) {
             const task = CONFIG.products[productName].find(t => t.name === taskName);
             if(task) {
               task.nonProd = nonProd;
               task.prod = prod;
               task.qty = qty;
-              task.detail = detail;
+              if(detail) task.detail = detail;
             }
           }
         }
       });
       
       renderEstimation();
-      renderAdmin();
+      if(currentUser === 'admin') renderAdmin();
       alert('Configuration uploaded and applied successfully!');
+      
+      // Clear the file input
+      document.getElementById('configFile').value = '';
+      
     } catch(err) {
-      alert('Error reading file: ' + err.message);
+      console.error('Upload error:', err);
+      alert('Error reading file: ' + err.message + '\n\nPlease ensure you are uploading a valid Excel file with the correct format.');
     }
   };
   reader.readAsArrayBuffer(file);
