@@ -218,6 +218,10 @@ button.download:hover {
   margin:10px 0;
   text-align:center;
 }
+tr.section-total {
+  background:#e8f4f8;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -476,8 +480,15 @@ function renderSection(parent,title,tasks,editable){
   sec.innerHTML=`<div class="section-header">${title}</div>`;
 
   let rows="";
+  let sectionTotal = 0;
+  let sectionCSU = 0;
+  
   tasks.forEach((t,i)=>{
     const total=(t.nonProd+t.prod)*t.qty;
+    const csu = total/2;
+    sectionTotal += total;
+    sectionCSU += csu;
+    
     const sectionKey = title.replace(/[^a-zA-Z0-9]/g,'_');
     rows+=`
     <tr>
@@ -487,9 +498,17 @@ function renderSection(parent,title,tasks,editable){
       <td>${editable?`<input type="number" step="0.1" value="${t.prod}" oninput="updateTask('${sectionKey}',${i},'prod',this.value)">`:t.prod.toFixed(1)}</td>
       <td>${editable?`<input type="number" value="${t.qty}" oninput="updateTask('${sectionKey}',${i},'qty',this.value)">`:t.qty}</td>
       <td>${total.toFixed(1)}</td>
-      <td>${(total/2).toFixed(1)}</td>
+      <td>${csu.toFixed(1)}</td>
     </tr>`;
   });
+  
+  // Add section total row
+  rows += `
+  <tr class="section-total">
+    <td colspan="5" style="text-align:right;">Section Total:</td>
+    <td>${sectionTotal.toFixed(1)}</td>
+    <td>${sectionCSU.toFixed(1)}</td>
+  </tr>`;
 
   sec.innerHTML+=`
   <table>
@@ -665,50 +684,265 @@ function updateTask(sectionKey,idx,field,value){
 
 function downloadEstimation(){
   const customerName = document.getElementById('customerName').value || 'Customer';
-  const wb=XLSX.utils.book_new();
-  const rows=[["Section","Task","Details","Non-Prod","Prod","Qty","Total","CSU"]];
-
-  CONFIG.overview.forEach(t=>{
-    const tot=(t.nonProd+t.prod)*t.qty;
-    rows.push(["Overview",t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
+  const wb = XLSX.utils.book_new();
+  const ws_data = [];
+  
+  // Header with customer info
+  ws_data.push(['Redwood Adoption Estimator']);
+  ws_data.push(['Customer:', customerName]);
+  ws_data.push(['Date:', new Date().toLocaleDateString()]);
+  ws_data.push([]);
+  
+  // Column headers
+  ws_data.push(['Section', 'Task', 'Details', 'Non-Prod', 'Prod', 'Qty', 'Total', 'CSU']);
+  
+  // Overview section
+  let sectionTotal = 0;
+  let sectionCSU = 0;
+  CONFIG.overview.forEach(t => {
+    const tot = (t.nonProd + t.prod) * t.qty;
+    const csu = tot / 2;
+    sectionTotal += tot;
+    sectionCSU += csu;
+    ws_data.push(['Overview', t.name, t.detail, t.nonProd, t.prod, t.qty, tot, csu]);
   });
-
-  Object.entries(CONFIG.products).forEach(([prodName, tasks])=>{
-    tasks.forEach(t=>{
-      const tot=(t.nonProd+t.prod)*t.qty;
-      rows.push([`Product: ${prodName}`,t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
+  ws_data.push(['', '', '', '', '', 'Section Total:', sectionTotal, sectionCSU]);
+  ws_data.push([]);
+  
+  // Product sections
+  let grandTotal = sectionTotal;
+  let grandCSU = sectionCSU;
+  
+  Object.entries(CONFIG.products).forEach(([prodName, tasks]) => {
+    sectionTotal = 0;
+    sectionCSU = 0;
+    tasks.forEach(t => {
+      const tot = (t.nonProd + t.prod) * t.qty;
+      const csu = tot / 2;
+      sectionTotal += tot;
+      sectionCSU += csu;
+      ws_data.push([`Product: ${prodName}`, t.name, t.detail, t.nonProd, t.prod, t.qty, tot, csu]);
     });
+    ws_data.push(['', '', '', '', '', 'Section Total:', sectionTotal, sectionCSU]);
+    ws_data.push([]);
+    grandTotal += sectionTotal;
+    grandCSU += sectionCSU;
   });
-
-  CONFIG.hypercare.forEach(t=>{
-    const tot=(t.nonProd+t.prod)*t.qty;
-    rows.push(["Hypercare",t.name,t.detail,t.nonProd,t.prod,t.qty,tot,tot/2]);
+  
+  // Hypercare section
+  sectionTotal = 0;
+  sectionCSU = 0;
+  CONFIG.hypercare.forEach(t => {
+    const tot = (t.nonProd + t.prod) * t.qty;
+    const csu = tot / 2;
+    sectionTotal += tot;
+    sectionCSU += csu;
+    ws_data.push(['UAT and Migration, Hypercare', t.name, t.detail, t.nonProd, t.prod, t.qty, tot, csu]);
   });
-
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),"Estimation");
-  XLSX.writeFile(wb,`${customerName}_Redwood_Estimation.xlsx`);
+  ws_data.push(['', '', '', '', '', 'Section Total:', sectionTotal, sectionCSU]);
+  ws_data.push([]);
+  grandTotal += sectionTotal;
+  grandCSU += sectionCSU;
+  
+  // Grand total
+  ws_data.push(['', '', '', '', '', 'GRAND TOTAL:', grandTotal, grandCSU]);
+  
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 30 },  // Section
+    { wch: 45 },  // Task
+    { wch: 60 },  // Details
+    { wch: 12 },  // Non-Prod
+    { wch: 12 },  // Prod
+    { wch: 8 },   // Qty
+    { wch: 12 },  // Total
+    { wch: 12 }   // CSU
+  ];
+  
+  // Apply styles
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[cell_address]) continue;
+      
+      // Initialize cell style
+      if (!ws[cell_address].s) ws[cell_address].s = {};
+      
+      // Title row (row 0)
+      if (R === 0) {
+        ws[cell_address].s = {
+          font: { bold: true, sz: 16, color: { rgb: "1a73e8" } },
+          alignment: { horizontal: "left" }
+        };
+      }
+      
+      // Header row (row 4)
+      if (R === 4) {
+        ws[cell_address].s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "1a73e8" } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        };
+      }
+      
+      // Section total rows
+      if (ws[cell_address].v === 'Section Total:' || ws[cell_address].v === 'GRAND TOTAL:') {
+        for (let colC = 0; colC <= 7; colC++) {
+          const totalCell = XLSX.utils.encode_cell({ r: R, c: colC });
+          if (ws[totalCell]) {
+            ws[totalCell].s = {
+              font: { bold: true },
+              fill: { fgColor: { rgb: ws[cell_address].v === 'GRAND TOTAL:' ? "4caf50" : "e8f4f8" } },
+              alignment: { horizontal: colC >= 5 ? "center" : "right" },
+              border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+              }
+            };
+          }
+        }
+      }
+      
+      // Regular data rows
+      if (R > 4 && ws[cell_address].v !== 'Section Total:' && ws[cell_address].v !== 'GRAND TOTAL:' && ws[cell_address].v !== '') {
+        ws[cell_address].s = {
+          alignment: { 
+            horizontal: C <= 2 ? "left" : "center",
+            vertical: "center",
+            wrapText: C === 2
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "dddddd" } },
+            bottom: { style: "thin", color: { rgb: "dddddd" } },
+            left: { style: "thin", color: { rgb: "dddddd" } },
+            right: { style: "thin", color: { rgb: "dddddd" } }
+          }
+        };
+        
+        // Alternate row coloring
+        if (R % 2 === 0) {
+          ws[cell_address].s.fill = { fgColor: { rgb: "f9f9f9" } };
+        }
+      }
+      
+      // Number formatting for numeric columns
+      if (C >= 3 && C <= 7 && R > 4 && typeof ws[cell_address].v === 'number') {
+        ws[cell_address].z = '0.0';
+      }
+    }
+  }
+  
+  XLSX.utils.book_append_sheet(wb, ws, "Estimation");
+  XLSX.writeFile(wb, `${customerName}_Redwood_Estimation.xlsx`);
 }
 
 function downloadTemplate(){
-  const wb=XLSX.utils.book_new();
-  const rows=[["Section","Task","Details","Non-Prod","Prod","Qty"]];
-
-  CONFIG.overview.forEach(t=>{
-    rows.push(["Overview",t.name,t.detail,t.nonProd,t.prod,t.qty]);
+  const wb = XLSX.utils.book_new();
+  const ws_data = [];
+  
+  // Instructions
+  ws_data.push(['Redwood Adoption Estimator - Configuration Template']);
+  ws_data.push(['Instructions: Fill in the values below and upload this file in the Admin Configuration tab']);
+  ws_data.push([]);
+  
+  // Column headers
+  ws_data.push(['Section', 'Task', 'Details', 'Non-Prod', 'Prod', 'Qty']);
+  
+  // Overview
+  CONFIG.overview.forEach(t => {
+    ws_data.push(['Overview', t.name, t.detail, t.nonProd, t.prod, t.qty]);
   });
-
-  Object.entries(CONFIG.products).forEach(([prodName, tasks])=>{
-    tasks.forEach(t=>{
-      rows.push([`Product: ${prodName}`,t.name,t.detail,t.nonProd,t.prod,t.qty]);
+  ws_data.push([]);
+  
+  // Products
+  Object.entries(CONFIG.products).forEach(([prodName, tasks]) => {
+    tasks.forEach(t => {
+      ws_data.push([`Product: ${prodName}`, t.name, t.detail, t.nonProd, t.prod, t.qty]);
     });
+    ws_data.push([]);
   });
-
-  CONFIG.hypercare.forEach(t=>{
-    rows.push(["Hypercare",t.name,t.detail,t.nonProd,t.prod,t.qty]);
+  
+  // Hypercare
+  CONFIG.hypercare.forEach(t => {
+    ws_data.push(['UAT and Migration, Hypercare', t.name, t.detail, t.nonProd, t.prod, t.qty]);
   });
-
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),"Config");
-  XLSX.writeFile(wb,"Redwood_Config_Template.xlsx");
+  
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 30 },
+    { wch: 45 },
+    { wch: 60 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 8 }
+  ];
+  
+  // Apply styles
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[cell_address]) continue;
+      
+      if (!ws[cell_address].s) ws[cell_address].s = {};
+      
+      // Title
+      if (R === 0) {
+        ws[cell_address].s = {
+          font: { bold: true, sz: 14, color: { rgb: "ff9800" } }
+        };
+      }
+      
+      // Header row
+      if (R === 3) {
+        ws[cell_address].s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "ff9800" } },
+          alignment: { horizontal: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" }
+          }
+        };
+      }
+      
+      // Data rows
+      if (R > 3 && ws[cell_address].v !== '') {
+        ws[cell_address].s = {
+          alignment: { 
+            horizontal: C <= 2 ? "left" : "center",
+            wrapText: C === 2
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "dddddd" } },
+            bottom: { style: "thin", color: { rgb: "dddddd" } },
+            left: { style: "thin", color: { rgb: "dddddd" } },
+            right: { style: "thin", color: { rgb: "dddddd" } }
+          }
+        };
+      }
+    }
+  }
+  
+  XLSX.utils.book_append_sheet(wb, ws, "Config");
+  XLSX.writeFile(wb, "Redwood_Config_Template.xlsx");
 }
 
 function uploadConfig(){
@@ -746,7 +980,7 @@ function uploadConfig(){
             task.qty = qty;
             task.detail = detail;
           }
-        } else if(section === 'Hypercare') {
+        } else if(section === 'UAT and Migration, Hypercare') {
           const task = CONFIG.hypercare.find(t => t.name === taskName);
           if(task) {
             task.nonProd = nonProd;
