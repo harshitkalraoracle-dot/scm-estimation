@@ -960,7 +960,29 @@ function uploadConfig(){
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet);
       
-      // Don't reset - just update the existing configuration
+      // First pass: identify which products are in the uploaded file and ensure they're selected
+      const productsInFile = new Set();
+      json.forEach(row => {
+        if (!row.Section) return;
+        const section = String(row.Section).trim();
+        if(section.startsWith('Product: ')) {
+          const productName = section.replace('Product: ', '').trim();
+          productsInFile.add(productName);
+        }
+      });
+      
+      // Make sure modules for these products are selected
+      productsInFile.forEach(productName => {
+        const modulesInProduct = MODULES.filter(m => m.product === productName);
+        modulesInProduct.forEach(mod => {
+          selectedModules.add(mod.name);
+        });
+      });
+      
+      // Rebuild product config based on selected modules
+      rebuildProductConfig();
+      
+      // Second pass: update all values from the file
       json.forEach(row => {
         // Skip empty rows or rows without section
         if (!row.Section || !row.Task) return;
@@ -1007,11 +1029,13 @@ function uploadConfig(){
         }
       });
       
-      // Re-render selector to show updated personalization counts
-      renderSelector();
       // Re-render everything to show the updated values
+      renderSelector();
       renderEstimation();
-      if(currentUser === 'admin') renderAdmin();
+      if(currentUser === 'admin') {
+        renderAdmin();
+      }
+      
       alert('Configuration uploaded and applied successfully!');
       
       // Clear the file input
