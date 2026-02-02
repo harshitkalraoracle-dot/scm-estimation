@@ -7,226 +7,460 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-:root {
-  --primary:#1a73e8;
-  --success:#4caf50;
-  --warning:#ff9800;
-  --danger:#f44336;
-  --light:#f5f7fa;
-  --dark:#202124;
-}
+/* Oracle Typography - System fonts matching Oracle's design */
 body {
-  font-family:'Segoe UI',Tahoma,sans-serif;
-  background:var(--light);
-  margin:0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #F5F7FA; /* Oracle light grey background */
+  margin: 0;
+  color: #252525; /* Oracle dark grey text */
 }
+
+:root {
+  /* Strict Oracle Grey & White Palette */
+  --oracle-black: #000000; /* Pure black for header */
+  --oracle-dark-grey: #252525; /* Dark grey for text */
+  --oracle-medium-grey: #666666; /* Medium grey */
+  --oracle-light-grey: #BDBDBD; /* Light grey borders */
+  --oracle-very-light-grey: #E0E0E0; /* Very light grey */
+  --oracle-background-grey: #F5F7FA; /* Background grey */
+  --oracle-white: #FFFFFF; /* Pure white */
+  --oracle-selected-green: #E8F5E9; /* Very subtle green for selected */
+  --oracle-unselected-red: #FFEBEE; /* Very subtle red for unselected */
+}
+
+/* Header with Oracle Jet banner below it */
 .header {
-  background:var(--primary);
-  color:#fff;
-  padding:16px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  background: var(--oracle-black); /* Black upper strip */
+  color: var(--oracle-white); /* White text */
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
-.header h2 { margin:0; }
+
+.header h2 { 
+  margin: 0; 
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 20px;
+}
+
+
+/* Oracle Jet banner - using your image */
+.oracle-jet-banner {
+  height: 8px;
+  background: url('oracle-jet-banner.png') no-repeat center center;
+  background-size: 100% 100%;
+  width: 100%;
+}
+
 .user-badge {
-  background:rgba(255,255,255,0.2);
-  padding:6px 12px;
-  border-radius:20px;
-  font-size:14px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--oracle-white);
 }
+
 .login-container {
-  max-width:400px;
-  margin:100px auto;
-  padding:32px;
-  background:#fff;
-  border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 32px;
+  background: var(--oracle-white);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--oracle-light-grey);
 }
+
 .login-container h3 {
-  margin-top:0;
-  color:var(--primary);
+  margin-top: 0;
+  color: var(--oracle-dark-grey);
+  font-weight: 600;
+  font-size: 20px;
 }
+
 .login-container input {
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border:1px solid #ddd;
-  border-radius:6px;
-  box-sizing:border-box;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid var(--oracle-light-grey);
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s;
 }
+
+.login-container input:focus {
+  outline: none;
+  border-color: var(--oracle-black);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
 .login-container button {
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:16px;
-  font-weight:600;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid var(--oracle-dark-grey);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s;
+  color: var(--oracle-white);
+  background: var(--oracle-dark-grey);
 }
+
+.login-container button:hover {
+  background: #1A1A1A;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .btn-user {
-  background:var(--success);
-  color:#fff;
+  background: var(--oracle-dark-grey);
+  color: var(--oracle-white);
+  border: 1px solid var(--oracle-dark-grey);
 }
+
 .btn-admin {
-  background:var(--primary);
-  color:#fff;
+  background: var(--oracle-white);
+  color: var(--oracle-dark-grey);
+  border: 1px solid var(--oracle-dark-grey);
 }
+
+.btn-admin:hover {
+  background: var(--oracle-very-light-grey);
+}
+
 .btn-logout {
-  background:var(--danger);
-  color:#fff;
-  padding:8px 16px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
+  background: var(--oracle-white);
+  color: var(--oracle-dark-grey);
+  padding: 8px 16px;
+  border: 1px solid var(--oracle-dark-grey);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
 }
+
+.btn-logout:hover {
+  background: var(--oracle-very-light-grey);
+}
+
 .dashboard {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:12px;
-  padding:16px;
-  background:#fff;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  background: var(--oracle-white);
+  border: 1px solid var(--oracle-light-grey);
+  border-radius: 8px;
+  margin: 16px;
 }
+
 .dashboard input {
-  width:100%;
-  padding:8px;
-  border:1px solid #ddd;
-  border-radius:4px;
-  box-sizing:border-box;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--oracle-light-grey);
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: var(--oracle-background-grey);
+  font-family: inherit;
+  color: var(--oracle-dark-grey);
 }
+
 .tabs {
-  display:flex;
-  background:#f1f3f5;
-  padding:0 20px;
-  border-bottom:1px solid #ddd;
-  flex-wrap:wrap;
+  display: flex;
+  background: var(--oracle-white);
+  padding: 0 20px;
+  border-bottom: 2px solid var(--oracle-light-grey);
+  flex-wrap: wrap;
+  margin: 0 16px;
 }
+
 .tab {
-  padding:12px 20px;
-  cursor:pointer;
-  font-weight:600;
-  user-select:none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  color: var(--oracle-medium-grey);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-size: 15px;
 }
+
+.tab:hover {
+  color: var(--oracle-dark-grey);
+  background: var(--oracle-very-light-grey);
+}
+
 .tab.active {
-  color:var(--primary);
-  border-bottom:3px solid var(--primary);
+  color: var(--oracle-black);
+  border-bottom: 3px solid var(--oracle-black);
+  background: var(--oracle-very-light-grey);
 }
+
 .tab-content {
-  display:none;
-  padding:20px;
+  display: none;
+  padding: 20px;
+  margin: 0 16px;
 }
-.tab-content.active { display:block; }
-.section {
-  margin-bottom:24px;
-  border-radius:8px;
-  overflow:hidden;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-  background:#fff;
+
+.tab-content.active { 
+  display: block; 
 }
+
+/* Product section headers - black background with white text */
+.product-header {
+  padding: 12px 16px;
+  font-weight: 600;
+  background: var(--oracle-black);
+  color: var(--oracle-white);
+  border-bottom: 1px solid var(--oracle-light-grey);
+  letter-spacing: 0.3px;
+  font-size: 15px;
+}
+
+/* Regular section headers - for other sections */
 .section-header {
-  padding:12px 16px;
-  font-weight:bold;
-  background:#f5f9ff;
-  border-bottom:1px solid #ccc;
+  padding: 12px 16px;
+  font-weight: 600;
+  background: var(--oracle-black);
+  color: var(--oracle-white);
+  border-bottom: 1px solid var(--oracle-light-grey);
+  letter-spacing: 0.3px;
+  font-size: 15px;
 }
+
+.section {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  background: var(--oracle-white);
+  border: 1px solid var(--oracle-light-grey);
+}
+
 table {
-  width:100%;
-  border-collapse:collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
-th,td {
-  padding:8px;
-  border:1px solid #ddd;
-  text-align:center;
+
+th, td {
+  padding: 10px 8px;
+  border: 1px solid var(--oracle-light-grey);
+  text-align: center;
 }
-th { background:#f5f9ff; font-weight:600; }
-td.task-name { text-align:left; font-weight:500; }
-td.task-details { text-align:left; font-size:13px; color:#555; }
+
+th { 
+  background: var(--oracle-background-grey); 
+  font-weight: 600; 
+  color: var(--oracle-dark-grey);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+td.task-name { 
+  text-align: left; 
+  font-weight: 500; 
+  color: var(--oracle-dark-grey);
+}
+
+td.task-details { 
+  text-align: left; 
+  font-size: 13px; 
+  color: var(--oracle-medium-grey);
+}
+
 input[type="number"] {
-  width:80px;
-  padding:4px;
-  text-align:center;
-  border:1px solid #ddd;
-  border-radius:4px;
+  width: 80px;
+  padding: 6px;
+  text-align: center;
+  border: 1px solid var(--oracle-light-grey);
+  border-radius: 4px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  color: var(--oracle-dark-grey);
 }
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--oracle-black);
+}
+
 button.download {
-  margin:24px auto;
-  display:block;
-  padding:12px 28px;
-  background:var(--success);
-  color:#fff;
-  border:none;
-  border-radius:6px;
-  font-size:16px;
-  cursor:pointer;
-  font-weight:600;
+  margin: 24px auto;
+  display: block;
+  padding: 12px 28px;
+  background: var(--oracle-white);
+  color: var(--oracle-dark-grey);
+  border: 1px solid var(--oracle-dark-grey);
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s;
 }
+
 button.download:hover {
-  background:#45a049;
+  background: var(--oracle-very-light-grey);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .admin-controls {
-  background:#fff3e0;
-  padding:20px;
-  margin-bottom:20px;
-  border-radius:8px;
-  border:2px dashed var(--warning);
+  background: var(--oracle-background-grey);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 2px solid var(--oracle-light-grey);
 }
+
 .admin-controls h3 {
-  margin-top:0;
-  color:var(--warning);
+  margin-top: 0;
+  color: var(--oracle-dark-grey);
+  font-weight: 600;
 }
+
 .file-input-wrapper {
-  margin:16px 0;
+  margin: 16px 0;
 }
+
 .file-input-wrapper input[type="file"] {
-  padding:8px;
-  border:1px solid #ddd;
-  border-radius:4px;
-  width:100%;
-  box-sizing:border-box;
+  padding: 8px;
+  border: 1px solid var(--oracle-light-grey);
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
 }
+
 .btn-upload {
-  background:var(--warning);
-  color:#fff;
-  padding:10px 20px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:600;
-  margin-top:10px;
+  background: var(--oracle-white);
+  color: var(--oracle-dark-grey);
+  padding: 10px 20px;
+  border: 1px solid var(--oracle-dark-grey);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 10px;
+  font-family: inherit;
+  transition: all 0.2s;
 }
+
+.btn-upload:hover {
+  background: var(--oracle-very-light-grey);
+}
+
 .module-toggle-btn {
-  padding:4px 12px;
-  border:none;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:600;
-  transition:all 0.2s;
+  padding: 6px 16px;
+  border: 1px solid var(--oracle-light-grey);
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--oracle-dark-grey);
 }
+
 .module-toggle-btn.selected {
-  background:#e6f4ea;
-  color:#137333;
+  background: var(--oracle-selected-green);
+  color: var(--oracle-dark-grey);
+  border: 1px solid var(--oracle-light-grey);
+  font-weight: 700;
 }
+
 .module-toggle-btn.unselected {
-  background:#fce8e6;
-  color:#c5221f;
+  background: var(--oracle-unselected-red);
+  color: var(--oracle-dark-grey);
+  border: 1px solid var(--oracle-light-grey);
+  font-weight: 700;
 }
-.hidden { display:none; }
+
+.hidden { 
+  display: none; 
+}
+
 .error-message {
-  color:var(--danger);
-  font-size:14px;
-  margin:10px 0;
-  text-align:center;
+  color: var(--oracle-dark-grey);
+  font-size: 14px;
+  margin: 10px 0;
+  text-align: center;
+  background: var(--oracle-background-grey);
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--oracle-medium-grey);
+  font-weight: 500;
 }
+
 tr.section-total {
-  background:#e8f4f8;
-  font-weight:bold;
+  background: var(--oracle-background-grey);
+  font-weight: 600;
+  color: var(--oracle-dark-grey);
+}
+
+/* Additional Oracle styling improvements */
+label {
+  font-weight: 500;
+  color: var(--oracle-dark-grey);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+input, select, textarea, button {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Focus states for accessibility */
+button:focus, input:focus, .tab:focus {
+  outline: 2px solid var(--oracle-black);
+  outline-offset: 2px;
+}
+
+/* Hover effects for better UX */
+.module-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: var(--oracle-dark-grey);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabs {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .tab {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+}
+
+/* Subtle icons with grey */
+.download-icon {
+  color: var(--oracle-medium-grey);
+  margin-right: 8px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- Rest of the HTML remains the same -->
 <div id="loginScreen" class="login-container">
   <h3>Redwood Adoption Estimator</h3>
   <p>Choose your access level:</p>
@@ -248,6 +482,9 @@ tr.section-total {
       <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
   </div>
+  
+  <!-- Oracle Jet banner below the header -->
+  <div class="oracle-jet-banner"></div>
 
   <div class="dashboard">
     <div>
@@ -273,33 +510,35 @@ tr.section-total {
   <div id="estimation" class="tab-content">
     <div id="formContainer"></div>
     <div style="text-align:center;margin:24px 0;">
-      <button class="download" onclick="downloadEstimation()" style="display:inline-block;margin:0 10px;">📥 Download Excel Report</button>
-      <button class="download" onclick="downloadJSON()" style="display:inline-block;margin:0 10px;background:#ff9800;">📄 Download JSON</button>
+      <button class="download" onclick="downloadEstimation()" style="display:inline-block;margin:0 10px;">Download Excel Report</button>
+      <button class="download" onclick="downloadJSON()" style="display:inline-block;margin:0 10px;">Download JSON</button>
     </div>
   </div>
 
   <div id="admin" class="tab-content">
     <div class="admin-controls">
-      <h3>⚙️ Configuration Management</h3>
+      <h3>Configuration Management</h3>
       
-      <div style="margin:20px 0;padding:15px;background:#fff;border-radius:8px;border:1px solid #ddd;">
-        <h4 style="margin-top:0;color:var(--success);">📄 JSON Configuration</h4>
+      <div style="margin:20px 0;padding:15px;background:var(--oracle-white);border-radius:8px;border:1px solid var(--oracle-light-grey);">
+        <h4 style="margin-top:0;color:var(--oracle-dark-grey);">JSON Configuration</h4>
         <p><strong>Upload JSON Configuration:</strong> Upload a JSON file to restore complete application state including selected modules, personalizations, and all configuration values.</p>
         <div class="file-input-wrapper">
           <input type="file" id="jsonFile" accept=".json">
-          <button class="btn-upload" onclick="uploadJSON()" style="background:var(--success);">Upload JSON & Apply</button>
+          <button class="btn-upload" onclick="uploadJSON()">Upload JSON & Apply</button>
         </div>
-        <button class="download" onclick="downloadJSON()" style="display:inline-block;margin:10px 0;background:#ff9800;">📄 Download Current Config as JSON</button>
+        <button class="download" onclick="downloadJSON()" style="display:inline-block;margin:10px 0;">Download Current Config as JSON</button>
       </div>
     </div>
     
     <h3>Current Configuration (Editable)</h3>
     <div id="adminContainer"></div>
-    <button class="download" onclick="downloadEstimation()">📥 Download Excel Report</button>
+    <button class="download" onclick="downloadEstimation()">Download Excel Report</button>
   </div>
 </div>
 
+<!-- Rest of the script remains the same -->
 <script>
+// ... (all the JavaScript code remains unchanged)
 const ADMIN_PASSWORD = "admin123";
 let currentUser = null;
 let personalizationCounts = {};
@@ -433,10 +672,10 @@ function initializeApp() {
   document.getElementById('appScreen').classList.remove('hidden');
   
   if (currentUser === 'admin') {
-    document.getElementById('userBadge').textContent = '👤 Admin';
+    document.getElementById('userBadge').textContent = 'Admin';
     renderTabs(['selector', 'estimation', 'admin']);
   } else {
-    document.getElementById('userBadge').textContent = '👤 User';
+    document.getElementById('userBadge').textContent = 'User';
     renderTabs(['selector', 'estimation']);
   }
   
@@ -453,7 +692,7 @@ function renderTabs(tabs) {
   const tabLabels = {
     selector: '1. Module Selection',
     estimation: '2. Estimation Report',
-    admin: '3. 🔒 Admin Configuration'
+    admin: '3. Admin Configuration'
   };
   
   tabs.forEach(tabId => {
@@ -552,9 +791,10 @@ function renderSelector(){
 
     const safeId = product.name.replace(/\s+/g, '_').replace(/&/g,'and');
     
+    // Using the product-header class for black background with white text
     productDiv.innerHTML = `
-      <div class="section-header">${product.name} (Weight: ${product.weight})</div>
-      <div style="padding:12px 16px;background:#f9f9f9;">
+      <div class="product-header">${product.name} (Weight: ${product.weight})</div>
+      <div style="padding:12px 16px;background:var(--oracle-background-grey);">
         <label style="font-weight:600;">Personalizations: 
           <input type="number" min="0" value="${personalizationCounts[product.name]}" 
             style="width:100px;margin-left:8px;"
@@ -576,7 +816,7 @@ function renderSelector(){
         <td>${mod.count}</td>
         <td><button class="module-toggle-btn ${isSelected?'selected':'unselected'}" 
           onclick="toggleModule('${mod.name.replace(/'/g,"\\'")}')">
-          ${isSelected ? '✓ Yes' : '✗ No'}
+          ${isSelected ? 'Yes' : 'No'}
         </button></td>`;
       tbody.appendChild(row);
     });
@@ -629,7 +869,7 @@ function rebuildProductConfig(){
 
     CONFIG.products[productName] = [
       { name: "Features Enablement", detail: "Enabling Feature by Feature by setup, Profile option, Opt-in Enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
-      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled, verified all features enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
+      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled, verified all features enablement.", nonProd: 0., prod: 0.1, qty: featureCount },
       { name: "Verification of Enabled Features at UI", detail: "Verification of enabled functionality by going into respective UI once all the features are enabled.", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
       { name: "Unit Testing w/o Personalization", detail: "Testing of Std Process by creating transaction.", nonProd: 24 * product.weight, prod: 0, qty: 1 },
       { name: "Comparison between Classic vs Redwood", detail: "Column by Column comparison between Classic and Redwood to ensure everything is covered.", nonProd: 16 * product.weight, prod: 0, qty: 1 },
@@ -782,7 +1022,7 @@ function downloadEstimation(){
       // Title row (row 0)
       if (R === 0) {
         ws[cell_address].s = {
-          font: { bold: true, sz: 16, color: { rgb: "1a73e8" } },
+          font: { bold: true, sz: 16, color: { rgb: "000000" } },
           alignment: { horizontal: "left" }
         };
       }
@@ -791,7 +1031,7 @@ function downloadEstimation(){
       if (R === 4) {
         ws[cell_address].s = {
           font: { bold: true, color: { rgb: "FFFFFF" } },
-          fill: { fgColor: { rgb: "1a73e8" } },
+          fill: { fgColor: { rgb: "000000" } },
           alignment: { horizontal: "center", vertical: "center" },
           border: {
             top: { style: "thin", color: { rgb: "000000" } },
@@ -809,7 +1049,7 @@ function downloadEstimation(){
           if (ws[totalCell]) {
             ws[totalCell].s = {
               font: { bold: true },
-              fill: { fgColor: { rgb: ws[cell_address].v === 'GRAND TOTAL:' ? "4caf50" : "e8f4f8" } },
+              fill: { fgColor: { rgb: ws[cell_address].v === 'GRAND TOTAL:' ? "252525" : "F5F7FA" } },
               alignment: { horizontal: colC >= 5 ? "center" : "right" },
               border: {
                 top: { style: "thin" },
@@ -831,16 +1071,16 @@ function downloadEstimation(){
             wrapText: C === 2
           },
           border: {
-            top: { style: "thin", color: { rgb: "dddddd" } },
-            bottom: { style: "thin", color: { rgb: "dddddd" } },
-            left: { style: "thin", color: { rgb: "dddddd" } },
-            right: { style: "thin", color: { rgb: "dddddd" } }
+            top: { style: "thin", color: { rgb: "BDBDBD" } },
+            bottom: { style: "thin", color: { rgb: "BDBDBD" } },
+            left: { style: "thin", color: { rgb: "BDBDBD" } },
+            right: { style: "thin", color: { rgb: "BDBDBD" } }
           }
         };
         
         // Alternate row coloring
         if (R % 2 === 0) {
-          ws[cell_address].s.fill = { fgColor: { rgb: "f9f9f9" } };
+          ws[cell_address].s.fill = { fgColor: { rgb: "F5F5F5" } };
         }
       }
       
@@ -911,7 +1151,7 @@ function downloadTemplate(){
       // Title
       if (R === 0) {
         ws[cell_address].s = {
-          font: { bold: true, sz: 14, color: { rgb: "ff9800" } }
+          font: { bold: true, sz: 14, color: { rgb: "252525" } }
         };
       }
       
@@ -919,7 +1159,7 @@ function downloadTemplate(){
       if (R === 3) {
         ws[cell_address].s = {
           font: { bold: true, color: { rgb: "FFFFFF" } },
-          fill: { fgColor: { rgb: "ff9800" } },
+          fill: { fgColor: { rgb: "252525" } },
           alignment: { horizontal: "center" },
           border: {
             top: { style: "thin" },
@@ -938,10 +1178,10 @@ function downloadTemplate(){
             wrapText: C === 2
           },
           border: {
-            top: { style: "thin", color: { rgb: "dddddd" } },
-            bottom: { style: "thin", color: { rgb: "dddddd" } },
-            left: { style: "thin", color: { rgb: "dddddd" } },
-            right: { style: "thin", color: { rgb: "dddddd" } }
+            top: { style: "thin", color: { rgb: "BDBDBD" } },
+            bottom: { style: "thin", color: { rgb: "BDBDBD" } },
+            left: { style: "thin", color: { rgb: "BDBDBD" } },
+            right: { style: "thin", color: { rgb: "BDBDBD" } }
           }
         };
       }
