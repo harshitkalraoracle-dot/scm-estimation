@@ -283,18 +283,8 @@ tr.section-total {
       <h3>⚙️ Configuration Management</h3>
       
       <div style="margin:20px 0;padding:15px;background:#fff;border-radius:8px;border:1px solid #ddd;">
-        <h4 style="margin-top:0;color:var(--primary);">📋 Excel Configuration</h4>
-        <p><strong>Upload Excel Configuration:</strong> Upload an Excel file to update estimation parameters.</p>
-        <div class="file-input-wrapper">
-          <input type="file" id="configFile" accept=".xlsx,.xls">
-          <button class="btn-upload" onclick="uploadConfig()">Upload Excel & Apply</button>
-        </div>
-        <button class="download" onclick="downloadTemplate()" style="display:inline-block;margin:10px 0;">📋 Download Current Config as Excel Template</button>
-      </div>
-      
-      <div style="margin:20px 0;padding:15px;background:#fff;border-radius:8px;border:1px solid #ddd;">
         <h4 style="margin-top:0;color:var(--success);">📄 JSON Configuration</h4>
-        <p><strong>Upload JSON Configuration:</strong> Upload a JSON file to restore complete application state.</p>
+        <p><strong>Upload JSON Configuration:</strong> Upload a JSON file to restore complete application state including selected modules, personalizations, and all configuration values.</p>
         <div class="file-input-wrapper">
           <input type="file" id="jsonFile" accept=".json">
           <button class="btn-upload" onclick="uploadJSON()" style="background:var(--success);">Upload JSON & Apply</button>
