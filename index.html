@@ -272,23 +272,40 @@ tr.section-total {
 
   <div id="estimation" class="tab-content">
     <div id="formContainer"></div>
-    <button class="download" onclick="downloadEstimation()">📥 Download Estimation Report</button>
+    <div style="text-align:center;margin:24px 0;">
+      <button class="download" onclick="downloadEstimation()" style="display:inline-block;margin:0 10px;">📥 Download Excel Report</button>
+      <button class="download" onclick="downloadJSON()" style="display:inline-block;margin:0 10px;background:#ff9800;">📄 Download JSON</button>
+    </div>
   </div>
 
   <div id="admin" class="tab-content">
     <div class="admin-controls">
       <h3>⚙️ Configuration Management</h3>
-      <p><strong>Upload Configuration:</strong> Upload an Excel file to update all estimation parameters.</p>
-      <div class="file-input-wrapper">
-        <input type="file" id="configFile" accept=".xlsx,.xls">
-        <button class="btn-upload" onclick="uploadConfig()">Upload & Apply</button>
+      
+      <div style="margin:20px 0;padding:15px;background:#fff;border-radius:8px;border:1px solid #ddd;">
+        <h4 style="margin-top:0;color:var(--primary);">📋 Excel Configuration</h4>
+        <p><strong>Upload Excel Configuration:</strong> Upload an Excel file to update estimation parameters.</p>
+        <div class="file-input-wrapper">
+          <input type="file" id="configFile" accept=".xlsx,.xls">
+          <button class="btn-upload" onclick="uploadConfig()">Upload Excel & Apply</button>
+        </div>
+        <button class="download" onclick="downloadTemplate()" style="display:inline-block;margin:10px 0;">📋 Download Current Config as Excel Template</button>
       </div>
-      <button class="download" onclick="downloadTemplate()" style="display:inline-block;margin:10px 0;">📋 Download Current Config as Template</button>
+      
+      <div style="margin:20px 0;padding:15px;background:#fff;border-radius:8px;border:1px solid #ddd;">
+        <h4 style="margin-top:0;color:var(--success);">📄 JSON Configuration</h4>
+        <p><strong>Upload JSON Configuration:</strong> Upload a JSON file to restore complete application state.</p>
+        <div class="file-input-wrapper">
+          <input type="file" id="jsonFile" accept=".json">
+          <button class="btn-upload" onclick="uploadJSON()" style="background:var(--success);">Upload JSON & Apply</button>
+        </div>
+        <button class="download" onclick="downloadJSON()" style="display:inline-block;margin:10px 0;background:#ff9800;">📄 Download Current Config as JSON</button>
+      </div>
     </div>
     
     <h3>Current Configuration (Editable)</h3>
     <div id="adminContainer"></div>
-    <button class="download" onclick="downloadEstimation()">📥 Download Estimation Report</button>
+    <button class="download" onclick="downloadEstimation()">📥 Download Excel Report</button>
   </div>
 </div>
 
@@ -1048,6 +1065,85 @@ function uploadConfig(){
   };
   reader.readAsArrayBuffer(file);
 }
+
+function downloadJSON() {
+  const customerName = document.getElementById('customerName').value || 'Customer';
+  
+  // Create a complete snapshot of the application state
+  const jsonData = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    customerName: customerName,
+    selectedModules: Array.from(selectedModules),
+    personalizationCounts: personalizationCounts,
+    config: CONFIG
+  };
+  
+  // Convert to JSON string with formatting
+  const jsonString = JSON.stringify(jsonData, null, 2);
+  
+  // Create blob and download
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${customerName}_Redwood_Config.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function uploadJSON() {
+  const file = document.getElementById('jsonFile').files[0];
+  if (!file) {
+    alert('Please select a JSON file first');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const jsonData = JSON.parse(e.target.result);
+      
+      // Validate the JSON structure
+      if (!jsonData.config || !jsonData.selectedModules) {
+        throw new Error('Invalid JSON structure. Please upload a valid configuration file.');
+      }
+      
+      // Restore the application state
+      document.getElementById('customerName').value = jsonData.customerName || 'Customer';
+      
+      // Restore selected modules
+      selectedModules.clear();
+      jsonData.selectedModules.forEach(mod => selectedModules.add(mod));
+      
+      // Restore personalization counts
+      personalizationCounts = jsonData.personalizationCounts || {};
+      
+      // Restore configuration
+      CONFIG = jsonData.config;
+      
+      // Re-render everything
+      renderSelector();
+      renderEstimation();
+      if(currentUser === 'admin') {
+        renderAdmin();
+      }
+      
+      alert('JSON configuration imported successfully!');
+      
+      // Clear the file input
+      document.getElementById('jsonFile').value = '';
+      
+    } catch(err) {
+      console.error('JSON Upload error:', err);
+      alert('Error reading JSON file: ' + err.message + '\n\nPlease ensure you are uploading a valid JSON configuration file.');
+    }
+  };
+  reader.readAsText(file);
+}
+
 </script>
 
 </body>
