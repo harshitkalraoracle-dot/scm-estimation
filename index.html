@@ -538,7 +538,6 @@ button:focus, input:focus, .tab:focus {
 
 <!-- Rest of the script remains the same -->
 <script>
-// ... (all the JavaScript code remains unchanged)
 const ADMIN_PASSWORD = "admin123";
 let currentUser = null;
 let personalizationCounts = {};
@@ -869,7 +868,7 @@ function rebuildProductConfig(){
 
     CONFIG.products[productName] = [
       { name: "Features Enablement", detail: "Enabling Feature by Feature by setup, Profile option, Opt-in Enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
-      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled, verified all features enablement.", nonProd: 0., prod: 0.1, qty: featureCount },
+      { name: "Verification of Enabled Features at Config Level", detail: "Once All the features are enabled, verified all features enablement.", nonProd: 0.1, prod: 0.1, qty: featureCount },
       { name: "Verification of Enabled Features at UI", detail: "Verification of enabled functionality by going into respective UI once all the features are enabled.", nonProd: 8 * product.weight, prod: 8 * product.weight, qty: 1 },
       { name: "Unit Testing w/o Personalization", detail: "Testing of Std Process by creating transaction.", nonProd: 24 * product.weight, prod: 0, qty: 1 },
       { name: "Comparison between Classic vs Redwood", detail: "Column by Column comparison between Classic and Redwood to ensure everything is covered.", nonProd: 16 * product.weight, prod: 0, qty: 1 },
@@ -894,6 +893,9 @@ function renderEstimation(){
   });
 
   renderSection(c,"UAT and Migration, Hypercare",CONFIG.hypercare,false);
+  
+  // Add grand total section
+  renderGrandTotal(c);
 }
 
 function renderAdmin(){
@@ -906,6 +908,55 @@ function renderAdmin(){
   });
 
   renderSection(c,"UAT and Migration, Hypercare",CONFIG.hypercare,true);
+  
+  // Add grand total section
+  renderGrandTotal(c);
+}
+
+function renderGrandTotal(parent) {
+  let grandTotal = 0;
+  let grandCSU = 0;
+  
+  // Calculate from Overview
+  CONFIG.overview.forEach(t => {
+    const total = (t.nonProd + t.prod) * t.qty;
+    grandTotal += total;
+    grandCSU += total / 2;
+  });
+  
+  // Calculate from Products
+  Object.values(CONFIG.products).forEach(tasks => {
+    tasks.forEach(t => {
+      const total = (t.nonProd + t.prod) * t.qty;
+      grandTotal += total;
+      grandCSU += total / 2;
+    });
+  });
+  
+  // Calculate from Hypercare
+  CONFIG.hypercare.forEach(t => {
+    const total = (t.nonProd + t.prod) * t.qty;
+    grandTotal += total;
+    grandCSU += total / 2;
+  });
+  
+  // Create grand total section with Oracle styling
+  const sec = document.createElement("div");
+  sec.className = "section";
+  sec.style.marginTop = "30px";
+  sec.innerHTML = `
+    <div class="section-header" style="background:var(--oracle-dark-grey);color:var(--oracle-white);font-size:18px;">📊 GRAND TOTAL</div>
+    <table>
+      <thead>
+        <tr style="background:var(--oracle-background-grey);">
+          <th colspan="5" style="text-align:right;font-size:16px;color:var(--oracle-dark-grey);">TOTAL ESTIMATION</th>
+          <th style="font-size:16px;color:var(--oracle-dark-grey);font-weight:700;">${grandTotal.toFixed(1)} Hours</th>
+          <th style="font-size:16px;color:var(--oracle-dark-grey);font-weight:700;">${grandCSU.toFixed(1)} CSU</th>
+        </tr>
+      </thead>
+    </table>
+  `;
+  parent.appendChild(sec);
 }
 
 function updateTask(sectionKey,idx,field,value){
@@ -1004,7 +1055,7 @@ function downloadEstimation(){
     { wch: 12 },  // Non-Prod
     { wch: 12 },  // Prod
     { wch: 8 },   // Qty
-    { wch: 12 },  // Total
+    { wch: 18 },  // Total Man Hours
     { wch: 12 }   // CSU
   ];
   
@@ -1093,207 +1144,6 @@ function downloadEstimation(){
   
   XLSX.utils.book_append_sheet(wb, ws, "Estimation");
   XLSX.writeFile(wb, `${customerName}_Redwood_Estimation.xlsx`);
-}
-
-function downloadTemplate(){
-  const wb = XLSX.utils.book_new();
-  const ws_data = [];
-  
-  // Instructions
-  ws_data.push(['Redwood Adoption Estimator - Configuration Template']);
-  ws_data.push(['Instructions: Fill in the values below and upload this file in the Admin Configuration tab']);
-  ws_data.push([]);
-  
-  // Column headers
-  ws_data.push(['Section', 'Task', 'Details', 'Non-Prod', 'Prod', 'Qty']);
-  
-  // Overview
-  CONFIG.overview.forEach(t => {
-    ws_data.push(['Overview', t.name, t.detail, t.nonProd, t.prod, t.qty]);
-  });
-  ws_data.push([]);
-  
-  // Products
-  Object.entries(CONFIG.products).forEach(([prodName, tasks]) => {
-    tasks.forEach(t => {
-      ws_data.push([`Product: ${prodName}`, t.name, t.detail, t.nonProd, t.prod, t.qty]);
-    });
-    ws_data.push([]);
-  });
-  
-  // Hypercare
-  CONFIG.hypercare.forEach(t => {
-    ws_data.push(['UAT and Migration, Hypercare', t.name, t.detail, t.nonProd, t.prod, t.qty]);
-  });
-  
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 30 },
-    { wch: 45 },
-    { wch: 60 },
-    { wch: 12 },
-    { wch: 12 },
-    { wch: 8 }
-  ];
-  
-  // Apply styles
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  
-  for (let R = range.s.r; R <= range.e.r; ++R) {
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-      if (!ws[cell_address]) continue;
-      
-      if (!ws[cell_address].s) ws[cell_address].s = {};
-      
-      // Title
-      if (R === 0) {
-        ws[cell_address].s = {
-          font: { bold: true, sz: 14, color: { rgb: "252525" } }
-        };
-      }
-      
-      // Header row
-      if (R === 3) {
-        ws[cell_address].s = {
-          font: { bold: true, color: { rgb: "FFFFFF" } },
-          fill: { fgColor: { rgb: "252525" } },
-          alignment: { horizontal: "center" },
-          border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" }
-          }
-        };
-      }
-      
-      // Data rows
-      if (R > 3 && ws[cell_address].v !== '') {
-        ws[cell_address].s = {
-          alignment: { 
-            horizontal: C <= 2 ? "left" : "center",
-            wrapText: C === 2
-          },
-          border: {
-            top: { style: "thin", color: { rgb: "BDBDBD" } },
-            bottom: { style: "thin", color: { rgb: "BDBDBD" } },
-            left: { style: "thin", color: { rgb: "BDBDBD" } },
-            right: { style: "thin", color: { rgb: "BDBDBD" } }
-          }
-        };
-      }
-    }
-  }
-  
-  XLSX.utils.book_append_sheet(wb, ws, "Config");
-  XLSX.writeFile(wb, "Redwood_Config_Template.xlsx");
-}
-
-function uploadConfig(){
-  const file = document.getElementById('configFile').files[0];
-  if (!file) {
-    alert('Please select a file first');
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type: 'array'});
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet);
-      
-      // First pass: identify which products are in the uploaded file and ensure they're selected
-      const productsInFile = new Set();
-      json.forEach(row => {
-        if (!row.Section) return;
-        const section = String(row.Section).trim();
-        if(section.startsWith('Product: ')) {
-          const productName = section.replace('Product: ', '').trim();
-          productsInFile.add(productName);
-        }
-      });
-      
-      // Make sure modules for these products are selected
-      productsInFile.forEach(productName => {
-        const modulesInProduct = MODULES.filter(m => m.product === productName);
-        modulesInProduct.forEach(mod => {
-          selectedModules.add(mod.name);
-        });
-      });
-      
-      // Rebuild product config based on selected modules
-      rebuildProductConfig();
-      
-      // Second pass: update all values from the file
-      json.forEach(row => {
-        // Skip empty rows or rows without section
-        if (!row.Section || !row.Task) return;
-        
-        const section = String(row.Section).trim();
-        const taskName = String(row.Task).trim();
-        const nonProd = parseFloat(row['Non-Prod']) || 0;
-        const prod = parseFloat(row.Prod) || 0;
-        const qty = parseInt(row.Qty) || 0;
-        const detail = row.Details ? String(row.Details) : '';
-        
-        if(section === 'Overview') {
-          const task = CONFIG.overview.find(t => t.name === taskName);
-          if(task) {
-            task.nonProd = nonProd;
-            task.prod = prod;
-            task.qty = qty;
-            if(detail) task.detail = detail;
-          }
-        } else if(section === 'UAT and Migration, Hypercare' || section === 'Hypercare') {
-          const task = CONFIG.hypercare.find(t => t.name === taskName);
-          if(task) {
-            task.nonProd = nonProd;
-            task.prod = prod;
-            task.qty = qty;
-            if(detail) task.detail = detail;
-          }
-        } else if(section.startsWith('Product: ')) {
-          const productName = section.replace('Product: ', '').trim();
-          if(CONFIG.products[productName]) {
-            const task = CONFIG.products[productName].find(t => t.name === taskName);
-            if(task) {
-              task.nonProd = nonProd;
-              task.prod = prod;
-              task.qty = qty;
-              if(detail) task.detail = detail;
-              
-              // Extract personalization count from the "Enablement of Personalization" task
-              if(taskName === 'Enablement of Personalization and Production Migration') {
-                personalizationCounts[productName] = qty;
-              }
-            }
-          }
-        }
-      });
-      
-      // Re-render everything to show the updated values
-      renderSelector();
-      renderEstimation();
-      if(currentUser === 'admin') {
-        renderAdmin();
-      }
-      
-      alert('Configuration uploaded and applied successfully!');
-      
-      // Clear the file input
-      document.getElementById('configFile').value = '';
-      
-    } catch(err) {
-      console.error('Upload error:', err);
-      alert('Error reading file: ' + err.message + '\n\nPlease ensure you are uploading a valid Excel file with the correct format.');
-    }
-  };
-  reader.readAsArrayBuffer(file);
 }
 
 function downloadJSON() {
