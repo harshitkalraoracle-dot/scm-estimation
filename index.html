@@ -678,6 +678,20 @@ function initializeApp() {
     renderTabs(['selector', 'estimation']);
   }
   
+  // Set up event delegation for editable fields (only once)
+  if (!window.editableFieldsListenerAttached) {
+    document.addEventListener('input', function(e) {
+      if (e.target.classList.contains('editable-field')) {
+        const sectionKey = e.target.getAttribute('data-section');
+        const index = parseInt(e.target.getAttribute('data-index'));
+        const field = e.target.getAttribute('data-field');
+        const value = e.target.value;
+        updateTask(sectionKey, index, field, value);
+      }
+    });
+    window.editableFieldsListenerAttached = true;
+  }
+  
   renderSelector();
   rebuildProductConfig();
   renderEstimation();
@@ -739,9 +753,9 @@ function renderSection(parent,title,tasks,editable){
     <tr>
       <td class="task-name">${t.name}</td>
       <td class="task-details">${t.detail}</td>
-      <td>${editable?`<input type="number" step="0.1" value="${t.nonProd}" oninput="updateTask('${sectionKey}',${i},'nonProd',this.value)">`:t.nonProd.toFixed(1)}</td>
-      <td>${editable?`<input type="number" step="0.1" value="${t.prod}" oninput="updateTask('${sectionKey}',${i},'prod',this.value)">`:t.prod.toFixed(1)}</td>
-      <td>${editable?`<input type="number" value="${t.qty}" oninput="updateTask('${sectionKey}',${i},'qty',this.value)">`:t.qty}</td>
+      <td>${editable?`<input type="number" step="0.1" value="${t.nonProd}" data-section="${sectionKey}" data-index="${i}" data-field="nonProd" class="editable-field">`:t.nonProd.toFixed(1)}</td>
+      <td>${editable?`<input type="number" step="0.1" value="${t.prod}" data-section="${sectionKey}" data-index="${i}" data-field="prod" class="editable-field">`:t.prod.toFixed(1)}</td>
+      <td>${editable?`<input type="number" value="${t.qty}" data-section="${sectionKey}" data-index="${i}" data-field="qty" class="editable-field">`:t.qty}</td>
       <td>${total.toFixed(1)}</td>
       <td>${csu.toFixed(1)}</td>
     </tr>`;
@@ -962,21 +976,43 @@ function renderGrandTotal(parent) {
 function updateTask(sectionKey,idx,field,value){
   value = field==='qty' ? (parseInt(value)||0) : (parseFloat(value)||0);
   
+  console.log('updateTask called:', {sectionKey, idx, field, value});
+  
   if(sectionKey==="Overview") {
     if(CONFIG.overview[idx]) {
       CONFIG.overview[idx][field]=value;
+      console.log('Updated Overview');
     }
   } else if(sectionKey.includes("Hypercare") || sectionKey.includes("UAT")) {
     if(CONFIG.hypercare[idx]) {
       CONFIG.hypercare[idx][field]=value;
+      console.log('Updated Hypercare');
     }
-  } else if(sectionKey.startsWith("Product_")) {
-    const productName = sectionKey.replace("Product_", "").replace(/_/g, " ");
-    const matchingProduct = Object.keys(CONFIG.products).find(p => 
-      p.replace(/[^a-zA-Z0-9]/g,'_') === productName.replace(/[^a-zA-Z0-9]/g,'_')
-    );
+  } else if(sectionKey.includes("Product")) {
+    // Handle product sections - extract product name from section key
+    // Section key format: "Product__ProductName" where __ comes from "Product: "
+    let productName = sectionKey.replace(/^Product_+/, "").replace(/_/g, " ");
+    
+    console.log('Looking for product:', productName);
+    console.log('Available products:', Object.keys(CONFIG.products));
+    
+    // Try to find exact match first
+    let matchingProduct = Object.keys(CONFIG.products).find(p => p === productName);
+    
+    // If no exact match, try fuzzy matching
+    if (!matchingProduct) {
+      matchingProduct = Object.keys(CONFIG.products).find(p => 
+        p.replace(/[^a-zA-Z0-9]/g,'').toLowerCase() === productName.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()
+      );
+    }
+    
+    console.log('Matched product:', matchingProduct);
+    
     if(matchingProduct && CONFIG.products[matchingProduct] && CONFIG.products[matchingProduct][idx]) {
       CONFIG.products[matchingProduct][idx][field] = value;
+      console.log('Updated product task');
+    } else {
+      console.error('Could not update - product or task not found');
     }
   }
   
