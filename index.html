@@ -963,21 +963,28 @@ function updateTask(sectionKey,idx,field,value){
   value = field==='qty' ? (parseInt(value)||0) : (parseFloat(value)||0);
   
   if(sectionKey==="Overview") {
-    CONFIG.overview[idx][field]=value;
-  } else if(sectionKey.includes("Hypercare")) {
-    CONFIG.hypercare[idx][field]=value;
+    if(CONFIG.overview[idx]) {
+      CONFIG.overview[idx][field]=value;
+    }
+  } else if(sectionKey.includes("Hypercare") || sectionKey.includes("UAT")) {
+    if(CONFIG.hypercare[idx]) {
+      CONFIG.hypercare[idx][field]=value;
+    }
   } else if(sectionKey.startsWith("Product_")) {
     const productName = sectionKey.replace("Product_", "").replace(/_/g, " ");
     const matchingProduct = Object.keys(CONFIG.products).find(p => 
       p.replace(/[^a-zA-Z0-9]/g,'_') === productName.replace(/[^a-zA-Z0-9]/g,'_')
     );
-    if(matchingProduct && CONFIG.products[matchingProduct]) {
+    if(matchingProduct && CONFIG.products[matchingProduct] && CONFIG.products[matchingProduct][idx]) {
       CONFIG.products[matchingProduct][idx][field] = value;
     }
   }
   
+  // Re-render both estimation and admin sections
   renderEstimation();
-  if(currentUser === 'admin') renderAdmin();
+  if(currentUser === 'admin') {
+    renderAdmin();
+  }
 }
 
 function downloadEstimation(){
@@ -1199,10 +1206,12 @@ function uploadJSON() {
       jsonData.selectedModules.forEach(mod => selectedModules.add(mod));
       
       // Restore personalization counts
-      personalizationCounts = jsonData.personalizationCounts || {};
+      personalizationCounts = Object.assign({}, jsonData.personalizationCounts || {});
       
-      // Restore configuration
-      CONFIG = jsonData.config;
+      // Restore configuration - deep copy to avoid reference issues
+      CONFIG.overview = JSON.parse(JSON.stringify(jsonData.config.overview));
+      CONFIG.products = JSON.parse(JSON.stringify(jsonData.config.products));
+      CONFIG.hypercare = JSON.parse(JSON.stringify(jsonData.config.hypercare));
       
       // Re-render everything
       renderSelector();
